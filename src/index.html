@@ -412,6 +412,14 @@ const save = (week) => {
   try { localStorage.setItem('trainingsplanung_v2', JSON.stringify(week)); } catch(e) {}
 };
 
+const getISOWeek = (d = new Date()) => {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+};
+
 // ---- Input components ----
 
 function IntensityDots({ value, onChange }) {
@@ -628,6 +636,13 @@ function ExportCanvas({ week }) {
           color: '#6b6b78',
           textTransform: 'uppercase',
         }}>Wochenplanung</span>
+        <span style={{
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 12, fontWeight: 700,
+          letterSpacing: '0.08em',
+          color: '#7c6af7',
+          textTransform: 'uppercase',
+        }}>KW {String(getISOWeek()).padStart(2, '0')}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
