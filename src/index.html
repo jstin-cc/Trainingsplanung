@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wochentrainingsplaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #111113;
+    --bg2: #18181b;
+    --bg3: #1f1f24;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.13);
+    --text: #e8e8ec;
+    --text-muted: #6b6b78;
+    --text-dim: #3a3a45;
+    --accent: #7c6af7;
+    --dot1: #86efac;
+    --dot2: #4ade80;
+    --dot3: #facc15;
+    --dot4: #fb923c;
+    --dot5: #f87171;
+    --dot-inactive: #2a2a32;
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .app-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    height: 52px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .app-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .app-logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .app-header-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em;
+    margin-left: auto;
+  }
+
+  .app-body {
+    position: fixed;
+    top: 52px; left: 0; right: 0; bottom: 0;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    width: 420px;
+    flex-shrink: 0;
+    min-height: 0;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .left-panel::-webkit-scrollbar { width: 4px; }
+  .left-panel::-webkit-scrollbar-track { background: transparent; }
+  .left-panel::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  .day-section {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+  }
+  .day-section:last-child { border-bottom: none; }
+
+  .day-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .day-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .block-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+
+  .block-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .block-group:last-child { margin-bottom: 0; }
+
+  input[type="text"] {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    padding: 7px 10px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--text-dim); }
+
+  /* Intensity dots */
+  .intensity-row { display: flex; align-items: center; gap: 8px; }
+  .intensity-dots { display: flex; gap: 5px; flex-shrink: 0; }
+  .dot-btn {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.12s;
+    position: relative;
+  }
+  .dot-btn:hover { transform: scale(1.2); }
+  .dot-btn.active { box-shadow: 0 0 8px currentColor; }
+
+  /* Endurance entry card */
+  .endurance-entry {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+  }
+
+  .endurance-entry-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .entry-remove-btn {
+    width: 20px; height: 20px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .entry-remove-btn:hover { color: var(--dot5); background: rgba(248,113,113,0.1); }
+
+  .add-entry-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+    width: 100%;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .add-entry-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Koppel toggle */
+  .koppel-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+  }
+  .koppel-line { flex: 1; height: 1px; background: var(--border); }
+  .koppel-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-dim);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 9px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .koppel-btn:hover { border-color: #f59e0b; color: #f59e0b; }
+  .koppel-btn.active {
+    border-color: #f59e0b;
+    background: rgba(245,158,11,0.12);
+    color: #f59e0b;
+  }
+  .koppel-btn.active .koppel-line-inner { background: #f59e0b; }
+
+  /* Preview koppel badge */
+  .preview-koppel-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #f59e0b;
+    text-transform: uppercase;
+  }
+  .preview-koppel-line { flex: 1; height: 1px; background: rgba(245,158,11,0.3); }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .right-panel::-webkit-scrollbar { width: 4px; }
+  .right-panel::-webkit-scrollbar-track { background: transparent; }
+  .right-panel::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  .preview-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .preview-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+  }
+
+  .preview-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 120px;
+  }
+
+  .preview-day-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+
+  .preview-strength { display: flex; flex-direction: column; gap: 2px; }
+  .preview-strength-title { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .preview-strength-note { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
+
+  .preview-endurance-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .preview-endurance-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .preview-dots { display: flex; gap: 4px; }
+  .preview-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dot-inactive);
+    flex-shrink: 0;
+  }
+  .preview-endurance-note { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
+
+  .preview-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 2px 0;
+  }
+
+  .preview-empty { font-size: 10px; color: var(--text-dim); font-style: italic; font-family: 'Space Mono', monospace; }
+
+  .export-row { display: flex; justify-content: flex-end; }
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    letter-spacing: 0.01em;
+  }
+  .export-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .export-btn:active { transform: translateY(0); }
+  .export-btn.loading { opacity: 0.6; pointer-events: none; }
+
+  #export-root { position: fixed; left: -9999px; top: 0; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="export-root"></div>
+
+<script type="text/babel">
+const { useState, useCallback } = React;
+
+const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const DAY_FULL = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+const DOT_COLORS = ['#86efac', '#4ade80', '#facc15', '#fb923c', '#f87171'];
+const DOT_INACTIVE = '#2a2a32';
+
+const defaultEnduranceEntry = () => ({ title: '', intensity: 0, label: '', note: '', coupled: false });
+const defaultDay = () => ({ strengthTitle: '', strengthNote: '', endurance: [] });
+
+const defaultWeek = () => DAYS.map(() => defaultDay());
+
+const migrateDay = (d) => {
+  // Migrate old format (single intensity/enduranceLabel) to new array format
+  if (!d.endurance) {
+    const old = { title: '', intensity: d.intensity || 0, label: d.enduranceLabel || '', note: '' };
+    const hasOld = old.intensity > 0 || old.label;
+    return { strengthTitle: d.strengthTitle || '', strengthNote: d.strengthNote || '', endurance: hasOld ? [old] : [] };
+  }
+  return d;
+};
+
+const loadState = () => {
+  try {
+    const s = localStorage.getItem('trainingsplanung_v2');
+    if (s) return JSON.parse(s);
+    // Try migrate v1
+    const v1 = localStorage.getItem('trainingsplanung_v1');
+    if (v1) return JSON.parse(v1).map(migrateDay);
+  } catch(e) {}
+  return defaultWeek();
+};
+
+const save = (week) => {
+  try { localStorage.setItem('trainingsplanung_v2', JSON.stringify(week)); } catch(e) {}
+};
+
+// ---- Input components ----
+
+function IntensityDots({ value, onChange }) {
+  return (
+    <div className="intensity-dots">
+      {[1,2,3,4,5].map(lvl => (
+        <button
+          key={lvl}
+          className={`dot-btn${value === lvl ? ' active' : ''}`}
+          title={`Intensität ${lvl}`}
+          onClick={() => onChange(value === lvl ? 0 : lvl)}
+          style={{
+            background: value === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
+            color: value === lvl ? DOT_COLORS[lvl-1] : 'transparent',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function EnduranceEntry({ entry, onChange, onRemove, showRemove }) {
+  const set = (field, val) => onChange({ ...entry, [field]: val });
+  return (
+    <div className="endurance-entry">
+      <div className="endurance-entry-header">
+        <input
+          type="text"
+          placeholder="Titel (z.B. Lauf, Rad, Schwimmen)"
+          value={entry.title}
+          onChange={e => set('title', e.target.value)}
+          style={{ flex: 1 }}
+        />
+        {showRemove && (
+          <button className="entry-remove-btn" onClick={onRemove} title="Entfernen">✕</button>
+        )}
+      </div>
+      <div className="intensity-row">
+        <IntensityDots value={entry.intensity} onChange={v => set('intensity', v)} />
+        <input
+          type="text"
+          placeholder="Label (z.B. 4×8', lang)"
+          value={entry.label}
+          onChange={e => set('label', e.target.value)}
+          style={{ flex: 1 }}
+        />
+      </div>
+      <input
+        type="text"
+        placeholder="Notiz (optional)"
+        value={entry.note}
+        onChange={e => set('note', e.target.value)}
+      />
+    </div>
+  );
+}
+
+function DaySection({ idx, day, onChange }) {
+  const setDay = (newDay) => onChange(idx, newDay);
+
+  const setEndurance = (eIdx, newEntry) => {
+    const next = [...day.endurance];
+    next[eIdx] = newEntry;
+    setDay({ ...day, endurance: next });
+  };
+
+  const addEndurance = () => {
+    setDay({ ...day, endurance: [...day.endurance, defaultEnduranceEntry()] });
+  };
+
+  const removeEndurance = (eIdx) => {
+    setDay({ ...day, endurance: day.endurance.filter((_, i) => i !== eIdx) });
+  };
+
+  return (
+    <div className="day-section">
+      <div className="day-label">{DAY_FULL[idx]}</div>
+
+      {/* Kraft */}
+      <div className="block-group">
+        <div className="block-label">Kraft</div>
+        <input
+          type="text"
+          placeholder="Titel (z.B. Push / Pull)"
+          value={day.strengthTitle}
+          onChange={e => setDay({ ...day, strengthTitle: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Notiz (optional)"
+          value={day.strengthNote}
+          onChange={e => setDay({ ...day, strengthNote: e.target.value })}
+        />
+      </div>
+
+      {/* Ausdauer */}
+      <div className="block-group">
+        <div className="block-label">Ausdauer</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {day.endurance.map((entry, eIdx) => (
+            <React.Fragment key={eIdx}>
+              <EnduranceEntry
+                entry={entry}
+                onChange={(ne) => setEndurance(eIdx, ne)}
+                onRemove={() => removeEndurance(eIdx)}
+                showRemove={day.endurance.length > 0}
+              />
+              {eIdx < day.endurance.length - 1 && (
+                <div className="koppel-toggle">
+                  <div className="koppel-line"></div>
+                  <button
+                    className={`koppel-btn${entry.coupled ? ' active' : ''}`}
+                    onClick={() => setEndurance(eIdx, { ...entry, coupled: !entry.coupled })}
+                    title="Als Koppeltraining markieren"
+                  >
+                    ⛓ {entry.coupled ? 'Koppeltraining' : 'koppeln'}
+                  </button>
+                  <div className="koppel-line"></div>
+                </div>
+              )}
+            </React.Fragment>
+          ))}
+          <button className="add-entry-btn" onClick={addEndurance}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+              <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Ausdauereinheit hinzufügen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Preview components ----
+
+function PreviewDots({ intensity }) {
+  return (
+    <div className="preview-dots">
+      {[1,2,3,4,5].map(lvl => (
+        <div
+          key={lvl}
+          className="preview-dot"
+          style={{
+            background: intensity === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
+            boxShadow: intensity === lvl ? `0 0 5px ${DOT_COLORS[lvl-1]}` : 'none',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PreviewCard({ dayIdx, day }) {
+  const hasStrength = day.strengthTitle.trim();
+  const activeEndurance = day.endurance.filter(e => e.title.trim() || e.intensity > 0 || e.label.trim() || e.note.trim());
+  const isEmpty = !hasStrength && activeEndurance.length === 0;
+
+  return (
+    <div className="preview-card">
+      <div className="preview-day-name">{DAYS[dayIdx]}</div>
+      {isEmpty && <div className="preview-empty">—</div>}
+
+      {hasStrength && (
+        <div className="preview-strength">
+          <div className="preview-strength-title">{day.strengthTitle}</div>
+          {day.strengthNote && <div className="preview-strength-note">{day.strengthNote}</div>}
+        </div>
+      )}
+
+      {activeEndurance.map((entry, i) => (
+        <React.Fragment key={i}>
+          {(hasStrength || i > 0) && (
+            (i > 0 && activeEndurance[i-1].coupled)
+              ? <div className="preview-koppel-badge"><div className="preview-koppel-line"></div>⛓ Koppel<div className="preview-koppel-line"></div></div>
+              : <div className="preview-divider"></div>
+          )}
+          <div className="preview-endurance-block">
+            {entry.title && <div className="preview-endurance-title">{entry.title}</div>}
+            {entry.intensity > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <PreviewDots intensity={entry.intensity} />
+                {entry.label && <div className="preview-endurance-note">{entry.label}</div>}
+              </div>
+            )}
+            {!entry.intensity && entry.label && <div className="preview-endurance-note">{entry.label}</div>}
+            {entry.note && <div className="preview-endurance-note" style={{ fontStyle: 'italic' }}>{entry.note}</div>}
+          </div>
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+// ---- Export Canvas ----
+
+function ExportCanvas({ week }) {
+  return (
+    <div id="export-canvas" style={{
+      width: 1400,
+      background: '#111113',
+      fontFamily: "'Space Grotesk', sans-serif",
+      padding: '32px 40px 40px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#7c6af7' }}></div>
+        <span style={{
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 12, fontWeight: 700,
+          letterSpacing: '0.08em',
+          color: '#6b6b78',
+          textTransform: 'uppercase',
+        }}>Wochenplanung</span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
+        {week.map((day, idx) => {
+          const hasStrength = day.strengthTitle.trim();
+          const activeEnd = day.endurance.filter(e => e.title.trim() || e.intensity > 0 || e.label.trim() || e.note.trim());
+          const isEmpty = !hasStrength && activeEnd.length === 0;
+          return (
+            <div key={idx} style={{
+              background: '#18181b',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 10,
+              padding: '14px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}>
+              <div style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 9, fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: '#6b6b78',
+                borderBottom: '1px solid rgba(255,255,255,0.07)',
+                paddingBottom: 8,
+              }}>{DAYS[idx]}</div>
+
+              {isEmpty && <div style={{ fontSize: 10, color: '#3a3a45', fontStyle: 'italic', fontFamily: "'Space Mono', monospace" }}>—</div>}
+
+              {hasStrength && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#e8e8ec', lineHeight: 1.3 }}>{day.strengthTitle}</div>
+                  {day.strengthNote && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{day.strengthNote}</div>}
+                </div>
+              )}
+
+              {activeEnd.map((entry, i) => (
+                <React.Fragment key={i}>
+                  {(hasStrength || i > 0) && (
+                    (i > 0 && activeEnd[i-1].coupled)
+                      ? <div style={{ display: 'flex', alignItems: 'center', gap: 4, margin: '2px 0' }}>
+                          <div style={{ flex: 1, height: 1, background: 'rgba(245,158,11,0.3)' }}></div>
+                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 7, fontWeight: 700, letterSpacing: '0.1em', color: '#f59e0b', textTransform: 'uppercase' }}>⛓ Koppel</span>
+                          <div style={{ flex: 1, height: 1, background: 'rgba(245,158,11,0.3)' }}></div>
+                        </div>
+                      : <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '2px 0' }}></div>
+                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {entry.title && <div style={{ fontSize: 11, fontWeight: 600, color: '#e8e8ec', lineHeight: 1.3 }}>{entry.title}</div>}
+                    {entry.intensity > 0 && (
+                      <>
+                        <div style={{ display: 'flex', gap: 5 }}>
+                          {[1,2,3,4,5].map(lvl => (
+                            <div key={lvl} style={{
+                              width: 9, height: 9, borderRadius: '50%',
+                              background: entry.intensity === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
+                              boxShadow: entry.intensity === lvl ? `0 0 6px ${DOT_COLORS[lvl-1]}` : 'none',
+                            }}></div>
+                          ))}
+                        </div>
+                        {entry.label && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{entry.label}</div>}
+                      </>
+                    )}
+                    {!entry.intensity && entry.label && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{entry.label}</div>}
+                    {entry.note && <div style={{ fontSize: 10, color: '#6b6b78', fontStyle: 'italic', lineHeight: 1.3 }}>{entry.note}</div>}
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---- App ----
+
+function App() {
+  const [week, setWeek] = useState(loadState);
+  const [exporting, setExporting] = useState(false);
+
+  const handleChange = useCallback((idx, newDay) => {
+    setWeek(prev => {
+      const next = [...prev];
+      next[idx] = newDay;
+      save(next);
+      return next;
+    });
+  }, []);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const el = document.getElementById('export-canvas');
+      const canvas = await html2canvas(el, {
+        backgroundColor: '#111113',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const link = document.createElement('a');
+      link.download = 'trainingsplan.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch(e) {
+      alert('Export fehlgeschlagen.');
+    }
+    setExporting(false);
+  };
+
+  return (
+    <>
+      <div className="app-header">
+        <div className="app-logo">
+          <div className="app-logo-dot"></div>
+          Trainingsplanung
+        </div>
+        <div className="app-header-label">
+          {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+        </div>
+      </div>
+
+      <div className="app-body">
+        <div className="left-panel">
+          {week.map((day, idx) => (
+            <DaySection key={idx} idx={idx} day={day} onChange={handleChange} />
+          ))}
+        </div>
+
+        <div className="right-panel">
+          <div className="preview-label">Vorschau</div>
+          <div className="preview-grid">
+            {week.map((day, idx) => (
+              <PreviewCard key={idx} dayIdx={idx} day={day} />
+            ))}
+          </div>
+          <div className="export-row">
+            <button className={`export-btn${exporting ? ' loading' : ''}`} onClick={handleExport}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              {exporting ? 'Wird exportiert…' : 'Als PNG exportieren'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="export-root">
+        <ExportCanvas week={week} />
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
