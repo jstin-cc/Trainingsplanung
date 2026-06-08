@@ -417,7 +417,8 @@
     color: var(--text-muted);
   }
 
-  .dist-wrap { display: flex; flex-direction: column; gap: 7px; }
+  .summary-cols { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
+  .dist-wrap { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 160px; }
   .dist-bar {
     display: flex;
     height: 8px;
@@ -436,36 +437,6 @@
   }
   .dist-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  .day-load-bars {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-    align-items: end;
-  }
-  .day-load-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-  .day-load-track {
-    width: 100%;
-    height: 40px;
-    background: var(--bg3);
-    border-radius: 3px;
-    display: flex;
-    align-items: flex-end;
-    overflow: hidden;
-  }
-  .day-load-fill {
-    width: 100%;
-    background: var(--accent);
-    border-radius: 3px 3px 0 0;
-    min-height: 2px;
-    transition: height 0.15s;
-  }
-  .day-load-name {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
   .summary-hint { font-size: 10px; color: var(--text-dim); font-style: italic; }
 
   /* Kraft summary */
@@ -473,8 +444,7 @@
     display: flex;
     flex-direction: column;
     gap: 7px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
+    flex-shrink: 0;
   }
   .strength-summary-head { display: flex; align-items: baseline; gap: 10px; }
   .strength-summary-title {
@@ -1013,8 +983,6 @@ function WeekSummary({ week }) {
   // Verteilungsbalken: nach Minuten, sonst nach Anzahl
   const distBasis = s.hasDuration ? s.zoneMinutes : s.zoneCounts;
   const distTotal = distBasis.reduce((a, b) => a + b, 0);
-  const maxDayMinutes = Math.max(1, ...s.perDayMinutes);
-  const usedMuscles = MUSCLES.filter(m => s.muscleCounts[m] > 0);
 
   return (
     <div className="week-summary">
@@ -1029,63 +997,50 @@ function WeekSummary({ week }) {
         </div>
       </div>
 
-      {distTotal > 0 && (
-        <div className="dist-wrap">
-          <div className="dist-bar">
-            {distBasis.map((v, z) => v > 0 && (
-              <div
-                key={z}
-                className="dist-seg"
-                style={{ width: `${(v / distTotal) * 100}%`, background: ZONE_COLORS[z] }}
-                title={`${ZONE_LABELS[z]}: ${s.hasDuration ? fmtDuration(v) : v + ' Einh.'}`}
-              />
-            ))}
-          </div>
-          <div className="dist-legend">
-            {ZONE_LABELS.map((lbl, z) => (
-              <div key={z} className="dist-legend-item">
-                <span className="dist-dot" style={{ background: ZONE_COLORS[z] }}></span>
-                {lbl} {s.zoneCounts[z] > 0 ? `(${s.zoneCounts[z]})` : ''}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {s.hasDayMinutes && (
-        <div className="day-load">
-          <div className="day-load-bars">
-            {s.perDayMinutes.map((v, di) => (
-              <div key={di} className="day-load-col" title={`${DAY_FULL[di]}: ${fmtDuration(v)}`}>
-                <div className="day-load-track">
-                  <div className="day-load-fill" style={{ height: `${(v / maxDayMinutes) * 100}%` }}></div>
+      <div className="summary-cols">
+        {distTotal > 0 && (
+          <div className="dist-wrap">
+            <div className="dist-bar">
+              {distBasis.map((v, z) => v > 0 && (
+                <div
+                  key={z}
+                  className="dist-seg"
+                  style={{ width: `${(v / distTotal) * 100}%`, background: ZONE_COLORS[z] }}
+                  title={`${ZONE_LABELS[z]}: ${s.hasDuration ? fmtDuration(v) : v + ' Einh.'}`}
+                />
+              ))}
+            </div>
+            <div className="dist-legend">
+              {ZONE_LABELS.map((lbl, z) => (
+                <div key={z} className="dist-legend-item">
+                  <span className="dist-dot" style={{ background: ZONE_COLORS[z] }}></span>
+                  {lbl} {s.zoneCounts[z] > 0 ? `(${s.zoneCounts[z]})` : ''}
                 </div>
-                <div className="day-load-name">{DAYS[di]}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {s.strengthCount > 0 && (
-        <div className="strength-summary">
-          <div className="strength-summary-head">
-            <span className="strength-summary-title">Kraft</span>
-            <span className="strength-summary-meta">
-              {s.strengthCount} {s.strengthCount === 1 ? 'Einheit' : 'Einheiten'}
-            </span>
-          </div>
-          <MuscleMap muscleCounts={s.muscleCounts} />
-          <div className="muscle-legend">
-            {MUSCLE_COLORS.map((col, i) => (
-              <span key={i} className="muscle-legend-item">
-                <span className="muscle-legend-dot" style={{ background: col }}></span>
-                {i === 0 ? '0' : i === 3 ? '3+' : String(i)}
+        {s.strengthCount > 0 && (
+          <div className="strength-summary">
+            <div className="strength-summary-head">
+              <span className="strength-summary-title">Kraft</span>
+              <span className="strength-summary-meta">
+                {s.strengthCount} {s.strengthCount === 1 ? 'Einheit' : 'Einheiten'}
               </span>
-            ))}
+            </div>
+            <MuscleMap muscleCounts={s.muscleCounts} />
+            <div className="muscle-legend">
+              {MUSCLE_COLORS.map((col, i) => (
+                <span key={i} className="muscle-legend-item">
+                  <span className="muscle-legend-dot" style={{ background: col }}></span>
+                  {i === 0 ? '0' : i === 3 ? '3+' : String(i)}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
