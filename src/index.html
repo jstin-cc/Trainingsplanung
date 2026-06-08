@@ -164,25 +164,23 @@
 
   .metric-row { display: flex; gap: 6px; }
 
-  /* Muscle chips */
-  .muscle-chips { display: flex; flex-wrap: wrap; gap: 5px; }
-  .muscle-chip {
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 11px;
-    padding: 4px 9px;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-  }
-  .muscle-chip:hover { color: var(--text-muted); border-color: var(--text-muted); }
-  .muscle-chip.active {
-    border-color: var(--accent);
-    background: rgba(124,106,247,0.14);
+  /* Muscle chips display (read-only tags from template) */
+  .muscle-chips-display { display: flex; flex-wrap: wrap; gap: 4px; }
+  .muscle-chip-tag {
+    background: rgba(124,106,247,0.12);
     color: #c4b9ff;
+    border: 1px solid rgba(124,106,247,0.3);
+    border-radius: 5px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    padding: 2px 7px;
   }
+
+  /* Muscle map */
+  .muscle-map-wrap { display: flex; gap: 16px; justify-content: center; margin-top: 6px; }
+  .muscle-legend { display: flex; gap: 10px; justify-content: center; margin-top: 4px; }
+  .muscle-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+  .muscle-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
   /* Intensity dots */
   .intensity-row { display: flex; align-items: center; gap: 8px; }
@@ -613,11 +611,13 @@ const WORKOUT_TEMPLATES = [
   { name: 'Push', muscles: ['Brust', 'Schultern', 'Trizeps'] },
   { name: 'Pull', muscles: ['Rücken', 'Bizeps', 'Unterarme'] },
   { name: 'Leg', muscles: ['Beine', 'Waden'] },
-  { name: 'Oberkörper mit Armen', muscles: ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps'] },
-  { name: 'Oberkörper ohne Arme', muscles: ['Brust', 'Rücken', 'Schultern'] },
+  { name: 'Oberkörper mit Armen', muscles: ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps', 'Bauch/Core'] },
+  { name: 'Oberkörper ohne Arme', muscles: ['Brust', 'Rücken', 'Schultern', 'Bauch/Core'] },
 ];
 
-const defaultEnduranceEntry = () => ({ title: '', sport: '', intensity: 0, duration: 0, distance: '', pace: '', label: '', note: '', coupled: false });
+const SPORT_UNIT = { Schwimmen: 'm', Radfahren: 'km', Laufen: 'km', Sonstiges: 'km', '': 'km' };
+
+const defaultEnduranceEntry = () => ({ title: '', sport: '', intensity: 0, duration: 0, distance: 0, pace: '', label: '', note: '', coupled: false });
 const defaultDay = () => ({ strengthTitle: '', strengthNote: '', strengthDuration: 0, strengthMuscles: [], endurance: [] });
 
 const defaultWeek = () => DAYS.map(() => defaultDay());
@@ -659,7 +659,7 @@ const getISOWeek = (d = new Date()) => {
 
 const isActiveEntry = (e) => !!(
   (e.title && e.title.trim()) || (e.sport && e.sport.trim()) || e.intensity > 0 || (e.duration || 0) > 0 ||
-  (e.distance && e.distance.trim()) || (e.pace && e.pace.trim()) ||
+  (parseFloat(e.distance) || 0) > 0 || (e.pace && e.pace.trim()) ||
   (e.label && e.label.trim()) || (e.note && e.note.trim())
 );
 
@@ -743,6 +743,8 @@ function IntensityDots({ value, onChange }) {
 function EnduranceEntry({ entry, onChange, onRemove, showRemove }) {
   const set = (field, val) => onChange({ ...entry, [field]: val });
   const hints = SPORT_HINTS[entry.sport] || SPORT_HINTS[''];
+  const unit = SPORT_UNIT[entry.sport || ''];
+  const distVal = parseFloat(entry.distance) || 0;
   return (
     <div className="endurance-entry">
       <div className="endurance-entry-header">
@@ -786,13 +788,18 @@ function EnduranceEntry({ entry, onChange, onRemove, showRemove }) {
         />
       </div>
       <div className="metric-row">
-        <input
-          type="text"
-          placeholder={`Strecke (z.B. ${hints.distance})`}
-          value={entry.distance || ''}
-          onChange={e => set('distance', e.target.value)}
-          style={{ flex: 1 }}
-        />
+        <div className="duration-field" style={{ flex: 1 }}>
+          <input
+            type="number"
+            min="0"
+            step="0.1"
+            placeholder={hints.distance}
+            value={distVal || ''}
+            onChange={e => set('distance', e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value) || 0))}
+            style={{ width: 70 }}
+          />
+          <span>{unit}</span>
+        </div>
         <input
           type="text"
           placeholder={`Pace (z.B. ${hints.pace})`}
@@ -828,11 +835,6 @@ function DaySection({ idx, day, onChange }) {
     setDay({ ...day, endurance: day.endurance.filter((_, i) => i !== eIdx) });
   };
 
-  const muscles = day.strengthMuscles || [];
-  const toggleMuscle = (m) => {
-    const next = muscles.includes(m) ? muscles.filter(x => x !== m) : [...muscles, m];
-    setDay({ ...day, strengthMuscles: next });
-  };
   const applyTemplate = (name) => {
     const tpl = WORKOUT_TEMPLATES.find(t => t.name === name);
     if (!tpl) return;
@@ -863,27 +865,14 @@ function DaySection({ idx, day, onChange }) {
             onChange={e => setDay({ ...day, strengthTitle: e.target.value })}
             style={{ flex: 1 }}
           />
-          <div className="duration-field">
-            <input
-              type="number"
-              min="0"
-              placeholder="–"
-              value={day.strengthDuration || ''}
-              onChange={e => setDay({ ...day, strengthDuration: e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) })}
-            />
-            <span>min</span>
+        </div>
+        {(day.strengthMuscles || []).length > 0 && (
+          <div className="muscle-chips-display">
+            {(day.strengthMuscles || []).map(m => (
+              <span key={m} className="muscle-chip-tag">{m}</span>
+            ))}
           </div>
-        </div>
-        <div className="muscle-chips">
-          {MUSCLES.map(m => (
-            <button
-              key={m}
-              type="button"
-              className={`muscle-chip${muscles.includes(m) ? ' active' : ''}`}
-              onClick={() => toggleMuscle(m)}
-            >{m}</button>
-          ))}
-        </div>
+        )}
         <input
           type="text"
           placeholder="Notiz (optional)"
@@ -926,6 +915,80 @@ function DaySection({ idx, day, onChange }) {
             Ausdauereinheit hinzufügen
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Muscle Map SVG ----
+
+const MUSCLE_COLORS = ['#2a2a32', '#a7f3c2', '#facc15', '#f87171'];
+const muscleColor = (count) => MUSCLE_COLORS[Math.min(count || 0, 3)];
+
+function MuscleMap({ muscleCounts }) {
+  const c = (m) => muscleColor(muscleCounts[m] || 0);
+  // front / back simple geometric figure, viewBox 0 0 80 140
+  const bodyStroke = 'none';
+  const skin = '#2a2a32';
+  return (
+    <div className="muscle-map-wrap">
+      {/* Front */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontSize: 9, color: '#6b6b78', fontFamily: "'Space Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.06em' }}>Vorne</span>
+        <svg width="80" height="140" viewBox="0 0 80 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Head */}
+          <ellipse cx="40" cy="9" rx="8" ry="9" fill={skin} />
+          {/* Neck */}
+          <rect x="36" y="17" width="8" height="5" fill={skin} />
+          {/* Shoulders (front) */}
+          <ellipse cx="20" cy="28" rx="9" ry="6" fill={c('Schultern')} />
+          <ellipse cx="60" cy="28" rx="9" ry="6" fill={c('Schultern')} />
+          {/* Chest */}
+          <rect x="24" y="22" width="32" height="18" rx="3" fill={c('Brust')} />
+          {/* Bauch/Core */}
+          <rect x="26" y="40" width="28" height="20" rx="3" fill={c('Bauch/Core')} />
+          {/* Upper arms front (Bizeps) */}
+          <rect x="11" y="28" width="9" height="22" rx="4" fill={c('Bizeps')} />
+          <rect x="60" y="28" width="9" height="22" rx="4" fill={c('Bizeps')} />
+          {/* Unterarme front */}
+          <rect x="9" y="52" width="8" height="18" rx="3" fill={c('Unterarme')} />
+          <rect x="63" y="52" width="8" height="18" rx="3" fill={c('Unterarme')} />
+          {/* Hips */}
+          <rect x="26" y="60" width="28" height="8" rx="3" fill={skin} />
+          {/* Upper legs front (Beine) */}
+          <rect x="25" y="68" width="13" height="36" rx="5" fill={c('Beine')} />
+          <rect x="42" y="68" width="13" height="36" rx="5" fill={c('Beine')} />
+          {/* Lower legs front (Waden) */}
+          <rect x="26" y="105" width="11" height="28" rx="4" fill={c('Waden')} />
+          <rect x="43" y="105" width="11" height="28" rx="4" fill={c('Waden')} />
+        </svg>
+      </div>
+      {/* Back */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontSize: 9, color: '#6b6b78', fontFamily: "'Space Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hinten</span>
+        <svg width="80" height="140" viewBox="0 0 80 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Head */}
+          <ellipse cx="40" cy="9" rx="8" ry="9" fill={skin} />
+          {/* Neck */}
+          <rect x="36" y="17" width="8" height="5" fill={skin} />
+          {/* Shoulders (back) */}
+          <ellipse cx="20" cy="28" rx="9" ry="6" fill={c('Schultern')} />
+          <ellipse cx="60" cy="28" rx="9" ry="6" fill={c('Schultern')} />
+          {/* Back */}
+          <rect x="24" y="22" width="32" height="38" rx="3" fill={c('Rücken')} />
+          {/* Upper arms back (Trizeps) */}
+          <rect x="11" y="28" width="9" height="22" rx="4" fill={c('Trizeps')} />
+          <rect x="60" y="28" width="9" height="22" rx="4" fill={c('Trizeps')} />
+          {/* Unterarme back */}
+          <rect x="9" y="52" width="8" height="18" rx="3" fill={c('Unterarme')} />
+          <rect x="63" y="52" width="8" height="18" rx="3" fill={c('Unterarme')} />
+          {/* Glutes / upper legs back (Beine) */}
+          <rect x="25" y="60" width="13" height="44" rx="5" fill={c('Beine')} />
+          <rect x="42" y="60" width="13" height="44" rx="5" fill={c('Beine')} />
+          {/* Lower legs back (Waden) */}
+          <rect x="26" y="105" width="11" height="28" rx="4" fill={c('Waden')} />
+          <rect x="43" y="105" width="11" height="28" rx="4" fill={c('Waden')} />
+        </svg>
       </div>
     </div>
   );
@@ -1010,21 +1073,18 @@ function WeekSummary({ week }) {
             <span className="strength-summary-title">Kraft</span>
             <span className="strength-summary-meta">
               {s.strengthCount} {s.strengthCount === 1 ? 'Einheit' : 'Einheiten'}
-              {s.strengthMinutes > 0 ? ` · ${fmtDuration(s.strengthMinutes)}` : ''}
             </span>
           </div>
-          {usedMuscles.length > 0 && (
-            <div className="muscle-tally">
-              {usedMuscles.map(m => (
-                <span key={m} className="muscle-tally-item">{m} ×{s.muscleCounts[m]}</span>
-              ))}
-            </div>
-          )}
+          <MuscleMap muscleCounts={s.muscleCounts} />
+          <div className="muscle-legend">
+            {MUSCLE_COLORS.map((col, i) => (
+              <span key={i} className="muscle-legend-item">
+                <span className="muscle-legend-dot" style={{ background: col }}></span>
+                {i === 0 ? '0' : i === 3 ? '3+' : String(i)}
+              </span>
+            ))}
+          </div>
         </div>
-      )}
-
-      {!s.hasDuration && s.enduranceCount > 0 && (
-        <div className="summary-hint">Dauer (min) eintragen für Gesamtzeit & Verteilung.</div>
       )}
     </div>
   );
@@ -1071,7 +1131,9 @@ function PreviewCard({ dayIdx, day }) {
 
       {activeEndurance.map((entry, i) => {
         const heading = entry.title || entry.sport;
-        const metric = [entry.distance, entry.pace].filter(x => x && x.trim()).join(' · ');
+        const distNum = parseFloat(entry.distance) || 0;
+        const distStr = distNum > 0 ? `${distNum} ${SPORT_UNIT[entry.sport || '']}` : '';
+        const metric = [distStr, entry.pace].filter(x => x && x.trim()).join(' · ');
         return (
         <React.Fragment key={i}>
           {(hasStrength || i > 0) && (
@@ -1198,7 +1260,9 @@ function ExportCanvas({ week }) {
 
               {activeEnd.map((entry, i) => {
                 const heading = entry.title || entry.sport;
-                const metric = [entry.distance, entry.pace].filter(x => x && x.trim()).join(' · ');
+                const distNum = parseFloat(entry.distance) || 0;
+                const distStr = distNum > 0 ? `${distNum} ${SPORT_UNIT[entry.sport || '']}` : '';
+                const metric = [distStr, entry.pace].filter(x => x && x.trim()).join(' · ');
                 return (
                 <React.Fragment key={i}>
                   {(hasStrength || i > 0) && (
