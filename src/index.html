@@ -132,7 +132,7 @@
   }
   .block-group:last-child { margin-bottom: 0; }
 
-  input[type="text"] {
+  input[type="text"], input[type="number"] {
     background: var(--bg3);
     border: 1px solid var(--border);
     border-radius: 6px;
@@ -144,8 +144,8 @@
     outline: none;
     transition: border-color 0.15s;
   }
-  input[type="text"]:focus { border-color: var(--accent); }
-  input[type="text"]::placeholder { color: var(--text-dim); }
+  input[type="text"]:focus, input[type="number"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-dim); }
 
   /* Intensity dots */
   .intensity-row { display: flex; align-items: center; gap: 8px; }
@@ -346,6 +346,117 @@
 
   .preview-empty { font-size: 10px; color: var(--text-dim); font-style: italic; font-family: 'Space Mono', monospace; }
 
+  /* ---- Week summary ---- */
+  .week-summary {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .summary-empty { font-size: 11px; color: var(--text-dim); font-style: italic; }
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .summary-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: flex-start;
+  }
+  .summary-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+  }
+  .summary-stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .dist-wrap { display: flex; flex-direction: column; gap: 7px; }
+  .dist-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--dot-inactive);
+  }
+  .dist-seg { height: 100%; }
+  .dist-legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .dist-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  .dist-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .day-load-bars {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    align-items: end;
+  }
+  .day-load-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .day-load-track {
+    width: 100%;
+    height: 40px;
+    background: var(--bg3);
+    border-radius: 3px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  .day-load-fill {
+    width: 100%;
+    background: var(--accent);
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+    transition: height 0.15s;
+  }
+  .day-load-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .summary-hint { font-size: 10px; color: var(--text-dim); font-style: italic; }
+
+  /* ---- Duration input ---- */
+  .strength-row { display: flex; gap: 6px; align-items: stretch; }
+  .duration-field {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .duration-field input[type="number"] {
+    width: 46px;
+    text-align: right;
+    -moz-appearance: textfield;
+  }
+  .duration-field input[type="number"]::-webkit-outer-spin-button,
+  .duration-field input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .duration-field span {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
   .export-row { display: flex; justify-content: flex-end; gap: 10px; }
   .clear-btn {
     display: flex;
@@ -405,8 +516,8 @@ const DAY_FULL = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Sa
 const DOT_COLORS = ['#a7f3c2', '#4ade80', '#facc15', '#fb923c', '#f87171'];
 const DOT_INACTIVE = '#2a2a32';
 
-const defaultEnduranceEntry = () => ({ title: '', intensity: 0, label: '', note: '', coupled: false });
-const defaultDay = () => ({ strengthTitle: '', strengthNote: '', endurance: [] });
+const defaultEnduranceEntry = () => ({ title: '', intensity: 0, duration: 0, label: '', note: '', coupled: false });
+const defaultDay = () => ({ strengthTitle: '', strengthNote: '', strengthDuration: 0, endurance: [] });
 
 const defaultWeek = () => DAYS.map(() => defaultDay());
 
@@ -441,6 +552,68 @@ const getISOWeek = (d = new Date()) => {
   date.setUTCDate(date.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
   return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+};
+
+// ---- Stats ----
+
+const isActiveEntry = (e) => !!(
+  (e.title && e.title.trim()) || e.intensity > 0 || (e.duration || 0) > 0 ||
+  (e.label && e.label.trim()) || (e.note && e.note.trim())
+);
+
+// Zone of an intensity level: 0 = leicht (1-2), 1 = mittel (3), 2 = hart (4-5)
+const intensityZone = (i) => (i <= 2 ? 0 : i === 3 ? 1 : 2);
+
+const fmtDuration = (min) => {
+  const m = Math.round(min || 0);
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h}:${String(r).padStart(2, '0')} h` : `${h} h`;
+};
+
+const computeStats = (week) => {
+  let strengthCount = 0, enduranceCount = 0, totalMinutes = 0, load = 0;
+  let intensitySum = 0, intensityN = 0;
+  const zoneCounts = [0, 0, 0];
+  const zoneMinutes = [0, 0, 0];
+  const perDayLoad = week.map(() => 0);
+
+  week.forEach((day, di) => {
+    if (day.strengthTitle && day.strengthTitle.trim()) {
+      strengthCount++;
+      totalMinutes += day.strengthDuration || 0;
+    }
+    (day.endurance || []).forEach((e) => {
+      if (!isActiveEntry(e)) return;
+      enduranceCount++;
+      const dur = e.duration || 0;
+      totalMinutes += dur;
+      if (e.intensity > 0) {
+        const z = intensityZone(e.intensity);
+        zoneCounts[z]++;
+        zoneMinutes[z] += dur;
+        intensitySum += e.intensity;
+        intensityN++;
+        const l = e.intensity * dur;
+        load += l;
+        perDayLoad[di] += l;
+      }
+    });
+  });
+
+  return {
+    strengthCount,
+    enduranceCount,
+    sessions: strengthCount + enduranceCount,
+    totalMinutes,
+    load: Math.round(load),
+    avgIntensity: intensityN ? intensitySum / intensityN : 0,
+    zoneCounts,
+    zoneMinutes,
+    perDayLoad,
+    hasDuration: zoneMinutes.some(m => m > 0),
+  };
 };
 
 // ---- Input components ----
@@ -482,6 +655,16 @@ function EnduranceEntry({ entry, onChange, onRemove, showRemove }) {
       </div>
       <div className="intensity-row">
         <IntensityDots value={entry.intensity} onChange={v => set('intensity', v)} />
+        <div className="duration-field">
+          <input
+            type="number"
+            min="0"
+            placeholder="–"
+            value={entry.duration || ''}
+            onChange={e => set('duration', e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
+          />
+          <span>min</span>
+        </div>
         <input
           type="text"
           placeholder="Label (z.B. 4×8', lang)"
@@ -524,12 +707,25 @@ function DaySection({ idx, day, onChange }) {
       {/* Kraft */}
       <div className="block-group">
         <div className="block-label">Kraft</div>
-        <input
-          type="text"
-          placeholder="Titel (z.B. Push / Pull)"
-          value={day.strengthTitle}
-          onChange={e => setDay({ ...day, strengthTitle: e.target.value })}
-        />
+        <div className="strength-row">
+          <input
+            type="text"
+            placeholder="Titel (z.B. Push / Pull)"
+            value={day.strengthTitle}
+            onChange={e => setDay({ ...day, strengthTitle: e.target.value })}
+            style={{ flex: 1 }}
+          />
+          <div className="duration-field">
+            <input
+              type="number"
+              min="0"
+              placeholder="–"
+              value={day.strengthDuration || ''}
+              onChange={e => setDay({ ...day, strengthDuration: e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0) })}
+            />
+            <span>min</span>
+          </div>
+        </div>
         <input
           type="text"
           placeholder="Notiz (optional)"
@@ -577,6 +773,93 @@ function DaySection({ idx, day, onChange }) {
   );
 }
 
+// ---- Week summary ----
+
+const ZONE_COLORS = [DOT_COLORS[1], DOT_COLORS[2], DOT_COLORS[4]]; // leicht / mittel / hart
+const ZONE_LABELS = ['leicht', 'mittel', 'hart'];
+
+function WeekSummary({ week }) {
+  const s = computeStats(week);
+
+  if (s.sessions === 0) {
+    return (
+      <div className="week-summary">
+        <div className="summary-empty">Noch keine Einheiten geplant.</div>
+      </div>
+    );
+  }
+
+  // Verteilungsbalken: nach Minuten, sonst nach Anzahl
+  const distBasis = s.hasDuration ? s.zoneMinutes : s.zoneCounts;
+  const distTotal = distBasis.reduce((a, b) => a + b, 0);
+  const maxDayLoad = Math.max(1, ...s.perDayLoad);
+
+  return (
+    <div className="week-summary">
+      <div className="summary-stats">
+        <div className="summary-stat">
+          <div className="summary-stat-value">{s.sessions}</div>
+          <div className="summary-stat-label">Einheiten</div>
+        </div>
+        <div className="summary-stat">
+          <div className="summary-stat-value">{s.totalMinutes > 0 ? fmtDuration(s.totalMinutes) : '–'}</div>
+          <div className="summary-stat-label">Gesamtzeit</div>
+        </div>
+        <div className="summary-stat">
+          <div className="summary-stat-value">{s.load > 0 ? s.load : '–'}</div>
+          <div className="summary-stat-label">Load</div>
+        </div>
+        <div className="summary-stat">
+          <div className="summary-stat-value">{s.avgIntensity > 0 ? s.avgIntensity.toFixed(1) : '–'}</div>
+          <div className="summary-stat-label">Ø Intensität</div>
+        </div>
+      </div>
+
+      {distTotal > 0 && (
+        <div className="dist-wrap">
+          <div className="dist-bar">
+            {distBasis.map((v, z) => v > 0 && (
+              <div
+                key={z}
+                className="dist-seg"
+                style={{ width: `${(v / distTotal) * 100}%`, background: ZONE_COLORS[z] }}
+                title={`${ZONE_LABELS[z]}: ${s.hasDuration ? fmtDuration(v) : v + ' Einh.'}`}
+              />
+            ))}
+          </div>
+          <div className="dist-legend">
+            {ZONE_LABELS.map((lbl, z) => (
+              <div key={z} className="dist-legend-item">
+                <span className="dist-dot" style={{ background: ZONE_COLORS[z] }}></span>
+                {lbl} {s.zoneCounts[z] > 0 ? `(${s.zoneCounts[z]})` : ''}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {s.load > 0 && (
+        <div className="day-load">
+          <div className="day-load-bars">
+            {s.perDayLoad.map((v, di) => (
+              <div key={di} className="day-load-col" title={`${DAY_FULL[di]}: Load ${Math.round(v)}`}>
+                <div className="day-load-track">
+                  <div className="day-load-fill" style={{ height: `${(v / maxDayLoad) * 100}%` }}></div>
+                </div>
+                <div className="day-load-name">{DAYS[di]}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!s.hasDuration && (
+        <div className="summary-hint">Dauer (min) eintragen für Gesamtzeit & Load.</div>
+      )}
+    </div>
+  );
+}
+
 // ---- Preview components ----
 
 function PreviewDots({ intensity }) {
@@ -598,7 +881,7 @@ function PreviewDots({ intensity }) {
 
 function PreviewCard({ dayIdx, day }) {
   const hasStrength = day.strengthTitle.trim();
-  const activeEndurance = day.endurance.filter(e => e.title.trim() || e.intensity > 0 || e.label.trim() || e.note.trim());
+  const activeEndurance = day.endurance.filter(isActiveEntry);
   const isEmpty = !hasStrength && activeEndurance.length === 0;
 
   return (
@@ -640,6 +923,9 @@ function PreviewCard({ dayIdx, day }) {
 // ---- Export Canvas ----
 
 function ExportCanvas({ week }) {
+  const s = computeStats(week);
+  const distBasis = s.hasDuration ? s.zoneMinutes : s.zoneCounts;
+  const distTotal = distBasis.reduce((a, b) => a + b, 0);
   return (
     <div id="export-canvas" style={{
       width: 1400,
@@ -668,10 +954,39 @@ function ExportCanvas({ week }) {
         }}>KW {String(getISOWeek()).padStart(2, '0')}</span>
       </div>
 
+      {s.sessions > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 28,
+          background: '#18181b',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 10,
+          padding: '12px 18px',
+        }}>
+          {[
+            ['Einheiten', String(s.sessions)],
+            ['Gesamtzeit', s.totalMinutes > 0 ? fmtDuration(s.totalMinutes) : '–'],
+            ['Load', s.load > 0 ? String(s.load) : '–'],
+            ['Ø Intensität', s.avgIntensity > 0 ? s.avgIntensity.toFixed(1) : '–'],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#e8e8ec', lineHeight: 1 }}>{value}</span>
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6b78' }}>{label}</span>
+            </div>
+          ))}
+          {distTotal > 0 && (
+            <div style={{ display: 'flex', height: 8, flex: 1, borderRadius: 4, overflow: 'hidden', background: '#2a2a32', maxWidth: 360 }}>
+              {distBasis.map((v, z) => v > 0 && (
+                <div key={z} style={{ width: `${(v / distTotal) * 100}%`, background: ZONE_COLORS[z] }}></div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
         {week.map((day, idx) => {
           const hasStrength = day.strengthTitle.trim();
-          const activeEnd = day.endurance.filter(e => e.title.trim() || e.intensity > 0 || e.label.trim() || e.note.trim());
+          const activeEnd = day.endurance.filter(isActiveEntry);
           const isEmpty = !hasStrength && activeEnd.length === 0;
           return (
             <div key={idx} style={{
@@ -804,6 +1119,8 @@ function App() {
         </div>
 
         <div className="right-panel">
+          <div className="preview-label">Wochenübersicht</div>
+          <WeekSummary week={week} />
           <div className="preview-label">Vorschau</div>
           <div className="preview-grid">
             {week.map((day, idx) => (
