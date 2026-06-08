@@ -147,6 +147,43 @@
   input[type="text"]:focus, input[type="number"]:focus { border-color: var(--accent); }
   input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-dim); }
 
+  select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    padding: 7px 10px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  select:focus { border-color: var(--accent); }
+  .sport-select { flex-shrink: 0; max-width: 130px; }
+
+  .metric-row { display: flex; gap: 6px; }
+
+  /* Muscle chips */
+  .muscle-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .muscle-chip {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    padding: 4px 9px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .muscle-chip:hover { color: var(--text-muted); border-color: var(--text-muted); }
+  .muscle-chip.active {
+    border-color: var(--accent);
+    background: rgba(124,106,247,0.14);
+    color: #c4b9ff;
+  }
+
   /* Intensity dots */
   .intensity-row { display: flex; align-items: center; gap: 8px; }
   .intensity-dots { display: flex; gap: 5px; flex-shrink: 0; }
@@ -359,7 +396,7 @@
   .summary-empty { font-size: 11px; color: var(--text-dim); font-style: italic; }
   .summary-stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
   .summary-stat {
@@ -432,6 +469,49 @@
     color: var(--text-muted);
   }
   .summary-hint { font-size: 10px; color: var(--text-dim); font-style: italic; }
+
+  /* Kraft summary */
+  .strength-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .strength-summary-head { display: flex; align-items: baseline; gap: 10px; }
+  .strength-summary-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .strength-summary-meta { font-size: 11px; color: var(--text-muted); }
+  .muscle-tally { display: flex; flex-wrap: wrap; gap: 5px; }
+  .muscle-tally-item {
+    font-size: 10px;
+    color: #c4b9ff;
+    background: rgba(124,106,247,0.12);
+    border-radius: 5px;
+    padding: 2px 7px;
+  }
+
+  /* Preview: Sportart & Muskeln */
+  .preview-muscles {
+    font-size: 9px;
+    color: var(--accent);
+    line-height: 1.3;
+    font-family: 'Space Mono', monospace;
+  }
+  .preview-sport {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-right: 5px;
+  }
 
   /* ---- Duration input ---- */
   .strength-row { display: flex; gap: 6px; align-items: stretch; }
@@ -516,8 +596,29 @@ const DAY_FULL = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Sa
 const DOT_COLORS = ['#a7f3c2', '#4ade80', '#facc15', '#fb923c', '#f87171'];
 const DOT_INACTIVE = '#2a2a32';
 
-const defaultEnduranceEntry = () => ({ title: '', intensity: 0, duration: 0, label: '', note: '', coupled: false });
-const defaultDay = () => ({ strengthTitle: '', strengthNote: '', strengthDuration: 0, endurance: [] });
+const SPORTS = ['Schwimmen', 'Radfahren', 'Laufen', 'Sonstiges'];
+
+// Sportart-spezifische Platzhalter für Strecke / Pace
+const SPORT_HINTS = {
+  Schwimmen: { distance: '2000 m', pace: '1:45 /100m' },
+  Radfahren: { distance: '30 km', pace: '32 km/h' },
+  Laufen:    { distance: '10 km', pace: '5:10 /km' },
+  Sonstiges: { distance: 'Strecke', pace: 'Pace' },
+  '':        { distance: 'Strecke', pace: 'Pace' },
+};
+
+const MUSCLES = ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps', 'Bauch/Core', 'Beine', 'Waden', 'Unterarme'];
+
+const WORKOUT_TEMPLATES = [
+  { name: 'Push', muscles: ['Brust', 'Schultern', 'Trizeps'] },
+  { name: 'Pull', muscles: ['Rücken', 'Bizeps', 'Unterarme'] },
+  { name: 'Leg', muscles: ['Beine', 'Waden'] },
+  { name: 'Oberkörper mit Armen', muscles: ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps'] },
+  { name: 'Oberkörper ohne Arme', muscles: ['Brust', 'Rücken', 'Schultern'] },
+];
+
+const defaultEnduranceEntry = () => ({ title: '', sport: '', intensity: 0, duration: 0, distance: '', pace: '', label: '', note: '', coupled: false });
+const defaultDay = () => ({ strengthTitle: '', strengthNote: '', strengthDuration: 0, strengthMuscles: [], endurance: [] });
 
 const defaultWeek = () => DAYS.map(() => defaultDay());
 
@@ -557,7 +658,8 @@ const getISOWeek = (d = new Date()) => {
 // ---- Stats ----
 
 const isActiveEntry = (e) => !!(
-  (e.title && e.title.trim()) || e.intensity > 0 || (e.duration || 0) > 0 ||
+  (e.title && e.title.trim()) || (e.sport && e.sport.trim()) || e.intensity > 0 || (e.duration || 0) > 0 ||
+  (e.distance && e.distance.trim()) || (e.pace && e.pace.trim()) ||
   (e.label && e.label.trim()) || (e.note && e.note.trim())
 );
 
@@ -573,31 +675,31 @@ const fmtDuration = (min) => {
 };
 
 const computeStats = (week) => {
-  let strengthCount = 0, enduranceCount = 0, totalMinutes = 0, load = 0;
-  let intensitySum = 0, intensityN = 0;
+  let strengthCount = 0, enduranceCount = 0, totalMinutes = 0, strengthMinutes = 0;
   const zoneCounts = [0, 0, 0];
   const zoneMinutes = [0, 0, 0];
-  const perDayLoad = week.map(() => 0);
+  const perDayMinutes = week.map(() => 0);
+  const muscleCounts = {};
 
   week.forEach((day, di) => {
     if (day.strengthTitle && day.strengthTitle.trim()) {
       strengthCount++;
-      totalMinutes += day.strengthDuration || 0;
+      const sd = day.strengthDuration || 0;
+      totalMinutes += sd;
+      strengthMinutes += sd;
+      perDayMinutes[di] += sd;
+      (day.strengthMuscles || []).forEach(m => { muscleCounts[m] = (muscleCounts[m] || 0) + 1; });
     }
     (day.endurance || []).forEach((e) => {
       if (!isActiveEntry(e)) return;
       enduranceCount++;
       const dur = e.duration || 0;
       totalMinutes += dur;
+      perDayMinutes[di] += dur;
       if (e.intensity > 0) {
         const z = intensityZone(e.intensity);
         zoneCounts[z]++;
         zoneMinutes[z] += dur;
-        intensitySum += e.intensity;
-        intensityN++;
-        const l = e.intensity * dur;
-        load += l;
-        perDayLoad[di] += l;
       }
     });
   });
@@ -607,12 +709,13 @@ const computeStats = (week) => {
     enduranceCount,
     sessions: strengthCount + enduranceCount,
     totalMinutes,
-    load: Math.round(load),
-    avgIntensity: intensityN ? intensitySum / intensityN : 0,
+    strengthMinutes,
     zoneCounts,
     zoneMinutes,
-    perDayLoad,
+    perDayMinutes,
+    muscleCounts,
     hasDuration: zoneMinutes.some(m => m > 0),
+    hasDayMinutes: perDayMinutes.some(m => m > 0),
   };
 };
 
@@ -639,12 +742,21 @@ function IntensityDots({ value, onChange }) {
 
 function EnduranceEntry({ entry, onChange, onRemove, showRemove }) {
   const set = (field, val) => onChange({ ...entry, [field]: val });
+  const hints = SPORT_HINTS[entry.sport] || SPORT_HINTS[''];
   return (
     <div className="endurance-entry">
       <div className="endurance-entry-header">
+        <select
+          className="sport-select"
+          value={entry.sport || ''}
+          onChange={e => set('sport', e.target.value)}
+        >
+          <option value="">Sportart…</option>
+          {SPORTS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
         <input
           type="text"
-          placeholder="Titel (z.B. Lauf, Rad, Schwimmen)"
+          placeholder="Titel (z.B. Longrun, Intervalle)"
           value={entry.title}
           onChange={e => set('title', e.target.value)}
           style={{ flex: 1 }}
@@ -670,6 +782,22 @@ function EnduranceEntry({ entry, onChange, onRemove, showRemove }) {
           placeholder="Label (z.B. 4×8', lang)"
           value={entry.label}
           onChange={e => set('label', e.target.value)}
+          style={{ flex: 1 }}
+        />
+      </div>
+      <div className="metric-row">
+        <input
+          type="text"
+          placeholder={`Strecke (z.B. ${hints.distance})`}
+          value={entry.distance || ''}
+          onChange={e => set('distance', e.target.value)}
+          style={{ flex: 1 }}
+        />
+        <input
+          type="text"
+          placeholder={`Pace (z.B. ${hints.pace})`}
+          value={entry.pace || ''}
+          onChange={e => set('pace', e.target.value)}
           style={{ flex: 1 }}
         />
       </div>
@@ -700,6 +828,17 @@ function DaySection({ idx, day, onChange }) {
     setDay({ ...day, endurance: day.endurance.filter((_, i) => i !== eIdx) });
   };
 
+  const muscles = day.strengthMuscles || [];
+  const toggleMuscle = (m) => {
+    const next = muscles.includes(m) ? muscles.filter(x => x !== m) : [...muscles, m];
+    setDay({ ...day, strengthMuscles: next });
+  };
+  const applyTemplate = (name) => {
+    const tpl = WORKOUT_TEMPLATES.find(t => t.name === name);
+    if (!tpl) return;
+    setDay({ ...day, strengthTitle: tpl.name, strengthMuscles: [...tpl.muscles] });
+  };
+
   return (
     <div className="day-section">
       <div className="day-label">{DAY_FULL[idx]}</div>
@@ -708,6 +847,15 @@ function DaySection({ idx, day, onChange }) {
       <div className="block-group">
         <div className="block-label">Kraft</div>
         <div className="strength-row">
+          <select
+            className="sport-select"
+            value=""
+            onChange={e => { if (e.target.value) applyTemplate(e.target.value); }}
+            title="Workout-Vorlage übernehmen"
+          >
+            <option value="">Vorlage…</option>
+            {WORKOUT_TEMPLATES.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+          </select>
           <input
             type="text"
             placeholder="Titel (z.B. Push / Pull)"
@@ -725,6 +873,16 @@ function DaySection({ idx, day, onChange }) {
             />
             <span>min</span>
           </div>
+        </div>
+        <div className="muscle-chips">
+          {MUSCLES.map(m => (
+            <button
+              key={m}
+              type="button"
+              className={`muscle-chip${muscles.includes(m) ? ' active' : ''}`}
+              onClick={() => toggleMuscle(m)}
+            >{m}</button>
+          ))}
         </div>
         <input
           type="text"
@@ -792,7 +950,8 @@ function WeekSummary({ week }) {
   // Verteilungsbalken: nach Minuten, sonst nach Anzahl
   const distBasis = s.hasDuration ? s.zoneMinutes : s.zoneCounts;
   const distTotal = distBasis.reduce((a, b) => a + b, 0);
-  const maxDayLoad = Math.max(1, ...s.perDayLoad);
+  const maxDayMinutes = Math.max(1, ...s.perDayMinutes);
+  const usedMuscles = MUSCLES.filter(m => s.muscleCounts[m] > 0);
 
   return (
     <div className="week-summary">
@@ -804,14 +963,6 @@ function WeekSummary({ week }) {
         <div className="summary-stat">
           <div className="summary-stat-value">{s.totalMinutes > 0 ? fmtDuration(s.totalMinutes) : '–'}</div>
           <div className="summary-stat-label">Gesamtzeit</div>
-        </div>
-        <div className="summary-stat">
-          <div className="summary-stat-value">{s.load > 0 ? s.load : '–'}</div>
-          <div className="summary-stat-label">Load</div>
-        </div>
-        <div className="summary-stat">
-          <div className="summary-stat-value">{s.avgIntensity > 0 ? s.avgIntensity.toFixed(1) : '–'}</div>
-          <div className="summary-stat-label">Ø Intensität</div>
         </div>
       </div>
 
@@ -838,13 +989,13 @@ function WeekSummary({ week }) {
         </div>
       )}
 
-      {s.load > 0 && (
+      {s.hasDayMinutes && (
         <div className="day-load">
           <div className="day-load-bars">
-            {s.perDayLoad.map((v, di) => (
-              <div key={di} className="day-load-col" title={`${DAY_FULL[di]}: Load ${Math.round(v)}`}>
+            {s.perDayMinutes.map((v, di) => (
+              <div key={di} className="day-load-col" title={`${DAY_FULL[di]}: ${fmtDuration(v)}`}>
                 <div className="day-load-track">
-                  <div className="day-load-fill" style={{ height: `${(v / maxDayLoad) * 100}%` }}></div>
+                  <div className="day-load-fill" style={{ height: `${(v / maxDayMinutes) * 100}%` }}></div>
                 </div>
                 <div className="day-load-name">{DAYS[di]}</div>
               </div>
@@ -853,8 +1004,27 @@ function WeekSummary({ week }) {
         </div>
       )}
 
-      {!s.hasDuration && (
-        <div className="summary-hint">Dauer (min) eintragen für Gesamtzeit & Load.</div>
+      {s.strengthCount > 0 && (
+        <div className="strength-summary">
+          <div className="strength-summary-head">
+            <span className="strength-summary-title">Kraft</span>
+            <span className="strength-summary-meta">
+              {s.strengthCount} {s.strengthCount === 1 ? 'Einheit' : 'Einheiten'}
+              {s.strengthMinutes > 0 ? ` · ${fmtDuration(s.strengthMinutes)}` : ''}
+            </span>
+          </div>
+          {usedMuscles.length > 0 && (
+            <div className="muscle-tally">
+              {usedMuscles.map(m => (
+                <span key={m} className="muscle-tally-item">{m} ×{s.muscleCounts[m]}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!s.hasDuration && s.enduranceCount > 0 && (
+        <div className="summary-hint">Dauer (min) eintragen für Gesamtzeit & Verteilung.</div>
       )}
     </div>
   );
@@ -892,11 +1062,17 @@ function PreviewCard({ dayIdx, day }) {
       {hasStrength && (
         <div className="preview-strength">
           <div className="preview-strength-title">{day.strengthTitle}</div>
+          {(day.strengthMuscles || []).length > 0 && (
+            <div className="preview-muscles">{day.strengthMuscles.join(' · ')}</div>
+          )}
           {day.strengthNote && <div className="preview-strength-note">{day.strengthNote}</div>}
         </div>
       )}
 
-      {activeEndurance.map((entry, i) => (
+      {activeEndurance.map((entry, i) => {
+        const heading = entry.title || entry.sport;
+        const metric = [entry.distance, entry.pace].filter(x => x && x.trim()).join(' · ');
+        return (
         <React.Fragment key={i}>
           {(hasStrength || i > 0) && (
             (i > 0 && activeEndurance[i-1].coupled)
@@ -904,18 +1080,20 @@ function PreviewCard({ dayIdx, day }) {
               : <div className="preview-divider"></div>
           )}
           <div className="preview-endurance-block">
-            {entry.title && <div className="preview-endurance-title">{entry.title}</div>}
-            {entry.intensity > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <PreviewDots intensity={entry.intensity} />
-                {entry.label && <div className="preview-endurance-note">{entry.label}</div>}
+            {heading && (
+              <div className="preview-endurance-title">
+                {entry.sport && entry.title && <span className="preview-sport">{entry.sport}</span>}
+                {heading}
               </div>
             )}
-            {!entry.intensity && entry.label && <div className="preview-endurance-note">{entry.label}</div>}
+            {entry.intensity > 0 && <PreviewDots intensity={entry.intensity} />}
+            {metric && <div className="preview-endurance-note">{metric}</div>}
+            {entry.label && <div className="preview-endurance-note">{entry.label}</div>}
             {entry.note && <div className="preview-endurance-note" style={{ fontStyle: 'italic' }}>{entry.note}</div>}
           </div>
         </React.Fragment>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -965,8 +1143,6 @@ function ExportCanvas({ week }) {
           {[
             ['Einheiten', String(s.sessions)],
             ['Gesamtzeit', s.totalMinutes > 0 ? fmtDuration(s.totalMinutes) : '–'],
-            ['Load', s.load > 0 ? String(s.load) : '–'],
-            ['Ø Intensität', s.avgIntensity > 0 ? s.avgIntensity.toFixed(1) : '–'],
           ].map(([label, value]) => (
             <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               <span style={{ fontSize: 18, fontWeight: 700, color: '#e8e8ec', lineHeight: 1 }}>{value}</span>
@@ -1013,11 +1189,17 @@ function ExportCanvas({ week }) {
               {hasStrength && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#e8e8ec', lineHeight: 1.3 }}>{day.strengthTitle}</div>
+                  {(day.strengthMuscles || []).length > 0 && (
+                    <div style={{ fontSize: 9, color: '#7c6af7', lineHeight: 1.3, fontFamily: "'Space Mono', monospace" }}>{day.strengthMuscles.join(' · ')}</div>
+                  )}
                   {day.strengthNote && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{day.strengthNote}</div>}
                 </div>
               )}
 
-              {activeEnd.map((entry, i) => (
+              {activeEnd.map((entry, i) => {
+                const heading = entry.title || entry.sport;
+                const metric = [entry.distance, entry.pace].filter(x => x && x.trim()).join(' · ');
+                return (
                 <React.Fragment key={i}>
                   {(hasStrength || i > 0) && (
                     (i > 0 && activeEnd[i-1].coupled)
@@ -1029,26 +1211,30 @@ function ExportCanvas({ week }) {
                       : <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '2px 0' }}></div>
                   )}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {entry.title && <div style={{ fontSize: 11, fontWeight: 600, color: '#e8e8ec', lineHeight: 1.3 }}>{entry.title}</div>}
-                    {entry.intensity > 0 && (
-                      <>
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          {[1,2,3,4,5].map(lvl => (
-                            <div key={lvl} style={{
-                              width: 9, height: 9, borderRadius: '50%',
-                              background: entry.intensity === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
-                              boxShadow: entry.intensity === lvl ? `0 0 6px ${DOT_COLORS[lvl-1]}` : 'none',
-                            }}></div>
-                          ))}
-                        </div>
-                        {entry.label && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{entry.label}</div>}
-                      </>
+                    {heading && (
+                      <div style={{ fontSize: 11, fontWeight: 600, color: '#e8e8ec', lineHeight: 1.3 }}>
+                        {entry.sport && entry.title && <span style={{ color: '#6b6b78', fontWeight: 700, fontSize: 9, fontFamily: "'Space Mono', monospace", marginRight: 5, textTransform: 'uppercase' }}>{entry.sport}</span>}
+                        {heading}
+                      </div>
                     )}
-                    {!entry.intensity && entry.label && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{entry.label}</div>}
+                    {entry.intensity > 0 && (
+                      <div style={{ display: 'flex', gap: 5 }}>
+                        {[1,2,3,4,5].map(lvl => (
+                          <div key={lvl} style={{
+                            width: 9, height: 9, borderRadius: '50%',
+                            background: entry.intensity === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
+                            boxShadow: entry.intensity === lvl ? `0 0 6px ${DOT_COLORS[lvl-1]}` : 'none',
+                          }}></div>
+                        ))}
+                      </div>
+                    )}
+                    {metric && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{metric}</div>}
+                    {entry.label && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{entry.label}</div>}
                     {entry.note && <div style={{ fontSize: 10, color: '#6b6b78', fontStyle: 'italic', lineHeight: 1.3 }}>{entry.note}</div>}
                   </div>
                 </React.Fragment>
-              ))}
+                );
+              })}
             </div>
           );
         })}
