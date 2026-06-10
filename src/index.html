@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="dark" data-variant="pure" data-glow="on" data-bg="raster">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wochentrainingsplaner</title>
+<title>Trainingsplanung</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Archivo:wght@500;600;700;800;900&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -14,542 +14,721 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #111113;
-    --bg2: #18181b;
-    --bg3: #1f1f24;
-    --border: rgba(255,255,255,0.07);
-    --border-strong: rgba(255,255,255,0.13);
-    --text: #e8e8ec;
-    --text-muted: #6b6b78;
-    --text-dim: #3a3a45;
-    --accent: #7c6af7;
-    --dot1: #a7f3c2;
+  /* ---------- Themes ---------- */
+  html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0c0c0e;
+    --surface: #18181c;
+    --surface-2: #212126;
+    --field: #232329;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.15);
+    --text: #f2f2f5;
+    --text-muted: #9a9aa3;
+    --text-dim: #54545e;
+    --dot1: #86efac;
     --dot2: #4ade80;
     --dot3: #facc15;
     --dot4: #fb923c;
     --dot5: #f87171;
-    --dot-inactive: #2a2a32;
+    --dot-off: #2c2c33;
+    --koppel: #fbbf24;
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.25);
+    --shadow-pop: 0 12px 40px rgba(0,0,0,0.5);
+    --header-bg: rgba(12,12,14,0.78);
+    /* accent fallback until JS sets it */
+    --accent: #0A84FF;
+    --accent-contrast: #ffffff;
+    --accent-tint: rgba(10,132,255,0.13);
+    --accent-ring: rgba(10,132,255,0.25);
+    --accent-shadow: 0 5px 16px rgba(10,132,255,0.35);
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f4f4f6;
+    --surface: #ffffff;
+    --surface-2: #f7f7f9;
+    --field: #f0f0f3;
+    --border: rgba(20,20,30,0.08);
+    --border-strong: rgba(20,20,30,0.16);
+    --text: #1c1c21;
+    --text-muted: #6e6e76;
+    --text-dim: #b3b3bb;
+    --dot1: #34d399;
+    --dot2: #10b981;
+    --dot3: #f59e0b;
+    --dot4: #f97316;
+    --dot5: #ef4444;
+    --dot-off: #e4e4e9;
+    --koppel: #d97706;
+    --shadow-card: 0 1px 2px rgba(20,20,40,0.04), 0 8px 24px rgba(20,20,40,0.06);
+    --shadow-pop: 0 16px 48px rgba(20,20,40,0.18);
+    --header-bg: rgba(244,244,246,0.78);
+    --accent: #0A84FF;
+    --accent-contrast: #ffffff;
+    --accent-tint: rgba(10,132,255,0.13);
+    --accent-ring: rgba(10,132,255,0.25);
+    --accent-shadow: 0 5px 16px rgba(10,132,255,0.35);
+  }
+
+  /* ---------- Variants ---------- */
+  html[data-variant="pure"] {
+    --font-display: 'Hanken Grotesk';
+    --r-lg: 16px; --r-md: 12px; --r-sm: 10px;
+    --day-case: none; --day-ls: -0.01em; --day-weight: 700;
+  }
+  html[data-variant="athletic"] {
+    --font-display: 'Archivo';
+    --r-lg: 12px; --r-md: 9px; --r-sm: 8px;
+    --day-case: uppercase; --day-ls: 0.07em; --day-weight: 800;
+  }
+  html[data-variant="soft"] {
+    --font-display: 'Sora';
+    --r-lg: 20px; --r-md: 15px; --r-sm: 12px;
+    --day-case: none; --day-ls: 0; --day-weight: 600;
+  }
+  html[data-glow="off"] .glow { box-shadow: none !important; }
+
+  /* ---------- Hintergrund-Optionen ---------- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+  }
+  html[data-bg="aurora"] body::before {
+    background:
+      radial-gradient(640px 420px at 88% -12%, color-mix(in srgb, var(--accent) 21%, transparent), transparent 70%),
+      radial-gradient(760px 540px at -12% 28%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%),
+      radial-gradient(560px 440px at 58% 112%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 72%);
+  }
+  html[data-theme="light"][data-bg="aurora"] body::before { opacity: 0.55; }
+  html[data-bg="raster"] body::before {
+    background-image: radial-gradient(var(--border-strong) 1px, transparent 1.3px);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(180deg, black 0%, rgba(0,0,0,0.35) 55%, transparent 92%);
+    mask-image: linear-gradient(180deg, black 0%, rgba(0,0,0,0.35) 55%, transparent 92%);
+  }
+  html[data-bg="verlauf"] body::before {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, var(--bg)) 0%, var(--bg) 42%);
   }
 
   html, body { height: 100%; }
   body {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     background: var(--bg);
     color: var(--text);
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
+    font-feature-settings: 'tnum';
+    transition: background 0.25s;
   }
+  button { font-family: inherit; }
+  ::selection { background: var(--accent-tint); }
 
+  /* ---------- Header ---------- */
   .app-header {
     position: fixed;
     top: 0; left: 0; right: 0;
-    z-index: 10;
-    height: 52px;
-    background: var(--bg);
+    z-index: 20;
+    height: 60px;
     display: flex;
     align-items: center;
+    gap: 14px;
     padding: 0 24px;
+    background: var(--header-bg);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
     border-bottom: 1px solid var(--border);
-    gap: 12px;
   }
-  .app-logo {
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
+  .logo-mark {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--accent-shadow);
+    flex-shrink: 0;
+  }
+  .logo-mark svg { display: block; }
+  .app-title {
+    font-family: var(--font-display), sans-serif;
+    font-size: 16px;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    color: var(--text);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .kw-pill {
+    background: var(--accent-tint);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 11px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    transition: filter 0.15s;
+  }
+  .kw-pill:hover { filter: brightness(1.15); }
+
+  /* Week picker */
+  .wk-group { display: flex; align-items: center; gap: 2px; position: relative; }
+  .wk-arrow {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .wk-arrow:hover { background: var(--field); color: var(--text); }
+  .wk-overlay { position: fixed; inset: 0; z-index: 40; }
+  .wk-pop {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-pop);
+    padding: 6px;
+    width: 252px;
+    max-height: 340px;
+    overflow-y: auto;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .wk-pop::-webkit-scrollbar { width: 4px; }
+  .wk-pop::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+  .wk-item {
     display: flex;
     align-items: center;
     gap: 8px;
+    width: 100%;
+    padding: 8px 11px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    text-align: left;
+    transition: background 0.12s;
   }
-  .app-logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-  .app-header-label {
-    font-size: 11px;
+  .wk-item:hover { background: var(--field); }
+  .wk-item.sel { background: var(--accent-tint); color: var(--accent); }
+  .wk-item.sel .wk-range { color: var(--accent); opacity: 0.75; }
+  .wk-item .wk-range { margin-left: auto; font-size: 11px; color: var(--text-muted); font-weight: 500; }
+  .wk-item .wk-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .wk-item.today-link {
+    color: var(--accent);
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 3px;
+  }
+  .week-range {
+    font-size: 13px;
     color: var(--text-muted);
-    font-family: 'Space Mono', monospace;
-    letter-spacing: 0.08em;
-    margin-left: auto;
+    white-space: nowrap;
   }
+  .header-spacer { flex: 1; }
+  .theme-toggle {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .theme-toggle:hover { color: var(--text); border-color: var(--border-strong); }
+  .theme-toggle:active { transform: scale(0.94); }
 
+  /* ---------- Body layout ---------- */
   .app-body {
     position: fixed;
-    top: 52px; left: 0; right: 0; bottom: 0;
+    top: 60px; left: 0; right: 0; bottom: 0;
     display: flex;
     overflow: hidden;
   }
 
-  /* LEFT PANEL */
+  /* ---------- Left panel ---------- */
   .left-panel {
-    width: 420px;
+    width: 424px;
     flex-shrink: 0;
-    min-height: 0;
-    border-right: 1px solid var(--border);
     overflow-y: auto;
-    padding: 20px 0;
+    padding: 20px 20px 40px;
     display: flex;
     flex-direction: column;
+    gap: 12px;
   }
-  .left-panel::-webkit-scrollbar { width: 4px; }
-  .left-panel::-webkit-scrollbar-track { background: transparent; }
-  .left-panel::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+  .left-panel::-webkit-scrollbar, .right-panel::-webkit-scrollbar { width: 5px; }
+  .left-panel::-webkit-scrollbar-track, .right-panel::-webkit-scrollbar-track { background: transparent; }
+  .left-panel::-webkit-scrollbar-thumb, .right-panel::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 
-  .day-section {
-    border-bottom: 1px solid var(--border);
-    padding: 16px 20px;
-  }
-  .day-section:last-child { border-bottom: none; }
-
-  .day-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
+  .panel-eyebrow {
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .day-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-  .block-label {
-    font-size: 10px;
-    font-weight: 600;
     letter-spacing: 0.1em;
-    color: var(--text-dim);
     text-transform: uppercase;
-    margin-bottom: 7px;
-  }
-
-  .block-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .block-group:last-child { margin-bottom: 0; }
-
-  input[type="text"], input[type="number"] {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    padding: 7px 10px;
-    width: 100%;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  input[type="text"]:focus, input[type="number"]:focus { border-color: var(--accent); }
-  input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-dim); }
-
-  select {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    padding: 7px 10px;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.15s;
-  }
-  select:focus { border-color: var(--accent); }
-  .sport-select { flex-shrink: 0; max-width: 130px; }
-
-  .metric-row { display: flex; gap: 6px; }
-
-  /* Muscle chips display (read-only tags from template) */
-  .muscle-chips-display { display: flex; flex-wrap: wrap; gap: 4px; }
-  .muscle-chip-tag {
-    background: rgba(124,106,247,0.12);
-    color: #c4b9ff;
-    border: 1px solid rgba(124,106,247,0.3);
-    border-radius: 5px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 10px;
-    padding: 2px 7px;
-  }
-
-  /* Muscle map */
-  .muscle-map-wrap { display: flex; gap: 16px; justify-content: center; margin-top: 6px; }
-  .muscle-legend { display: flex; gap: 10px; justify-content: center; margin-top: 4px; }
-  .muscle-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
-  .muscle-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-
-  /* Intensity dots */
-  .intensity-row { display: flex; align-items: center; gap: 8px; }
-  .intensity-dots { display: flex; gap: 5px; flex-shrink: 0; }
-  .dot-btn {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.12s;
-    position: relative;
-  }
-  .dot-btn:hover { transform: scale(1.2); }
-  .dot-btn.active { box-shadow: 0 0 8px currentColor; }
-
-  /* Endurance entry card */
-  .endurance-entry {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    position: relative;
-  }
-
-  .endurance-entry-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-  }
-
-  .entry-remove-btn {
-    width: 20px; height: 20px;
-    border-radius: 4px;
-    border: none;
-    background: transparent;
     color: var(--text-dim);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 2px 4px;
+  }
+
+  /* Day card */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
     flex-shrink: 0;
-    transition: color 0.15s, background 0.15s;
-    font-size: 14px;
-    line-height: 1;
+    transition: border-color 0.2s;
   }
-  .entry-remove-btn:hover { color: var(--dot5); background: rgba(248,113,113,0.1); }
+  .day-card.has-content { border-color: color-mix(in srgb, var(--accent) 26%, transparent); }
 
-  .add-entry-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: transparent;
-    border: 1px dashed var(--border-strong);
-    border-radius: 6px;
-    color: var(--text-muted);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 12px;
-    padding: 6px 10px;
-    cursor: pointer;
+  .day-head {
     width: 100%;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .add-entry-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* Koppel toggle */
-  .koppel-toggle {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 2px 0;
-  }
-  .koppel-line { flex: 1; height: 1px; background: var(--border); }
-  .koppel-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    gap: 10px;
+    padding: 13px 16px;
     background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--text-dim);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 10px;
-    font-weight: 500;
-    padding: 3px 9px;
+    border: none;
     cursor: pointer;
-    transition: all 0.15s;
+    text-align: left;
+    color: var(--text);
+  }
+  .day-head:hover .day-chevron { color: var(--text); }
+  .day-name {
+    font-family: var(--font-display), sans-serif;
+    font-size: 14.5px;
+    font-weight: var(--day-weight);
+    text-transform: var(--day-case);
+    letter-spacing: var(--day-ls);
+  }
+  .day-date {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  .day-badges { display: flex; gap: 5px; margin-left: auto; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .day-badge {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2.5px 8px;
+    border-radius: 999px;
+    background: var(--field);
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 5px;
     white-space: nowrap;
   }
-  .koppel-btn:hover { border-color: #f59e0b; color: #f59e0b; }
-  .koppel-btn.active {
-    border-color: #f59e0b;
-    background: rgba(245,158,11,0.12);
-    color: #f59e0b;
-  }
-  .koppel-btn.active .koppel-line-inner { background: #f59e0b; }
-
-  /* Preview koppel badge */
-  .preview-koppel-badge {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: #f59e0b;
-    text-transform: uppercase;
-  }
-  .preview-koppel-line { flex: 1; height: 1px; background: rgba(245,158,11,0.3); }
-
-  /* RIGHT PANEL */
-  .right-panel {
-    flex: 1;
-    min-width: 0;
-    overflow-y: auto;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  .right-panel::-webkit-scrollbar { width: 4px; }
-  .right-panel::-webkit-scrollbar-track { background: transparent; }
-  .right-panel::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
-
-  .preview-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .preview-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-  .preview-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
-  }
-
-  .preview-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px 11px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-height: 120px;
-  }
-
-  .preview-day-name {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 8px;
-  }
-
-  .preview-strength { display: flex; flex-direction: column; gap: 2px; }
-  .preview-strength-title { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.3; }
-  .preview-strength-note { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
-
-  .preview-endurance-block {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .preview-endurance-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1.3;
-  }
-  .preview-dots { display: flex; gap: 4px; }
-  .preview-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--dot-inactive);
+  .day-badge .mini-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .day-chevron {
+    color: var(--text-dim);
+    transition: transform 0.25s, color 0.15s;
     flex-shrink: 0;
+    display: flex;
   }
-  .preview-endurance-note { font-size: 10px; color: var(--text-muted); line-height: 1.3; }
+  .day-card.open .day-chevron { transform: rotate(180deg); }
 
-  .preview-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 2px 0;
+  .day-body-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.3, 0.9, 0.3, 1);
   }
-
-  .preview-empty { font-size: 10px; color: var(--text-dim); font-style: italic; font-family: 'Space Mono', monospace; }
-
-  /* ---- Week summary ---- */
-  .week-summary {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
+  .day-card.open .day-body-wrap { grid-template-rows: 1fr; }
+  .day-body-inner { overflow: hidden; min-height: 0; }
+  .day-body {
+    padding: 2px 16px 16px;
     display: flex;
     flex-direction: column;
     gap: 14px;
   }
-  .summary-empty { font-size: 11px; color: var(--text-dim); font-style: italic; }
-  .summary-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-  .summary-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    align-items: flex-start;
-  }
-  .summary-stat-value {
-    font-size: 18px;
+
+  .block-label {
+    font-size: 10.5px;
     font-weight: 700;
-    color: var(--text);
-    line-height: 1;
-  }
-  .summary-stat-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 7px;
+  }
+  .stack-6 { display: flex; flex-direction: column; gap: 6px; }
+
+  /* Fields */
+  input[type="text"], input[type="number"] {
+    background: var(--field);
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    color: var(--text);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 13.5px;
+    padding: 9px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  input[type="text"]:focus, input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+    background: var(--surface);
+  }
+  input::placeholder { color: var(--text-dim); }
+
+  /* Sport chips */
+  .sport-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+  .sport-chip {
+    border: 1px solid var(--border);
+    background: transparent;
     color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5.5px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sport-chip:hover { border-color: var(--border-strong); color: var(--text); }
+  .sport-chip.on {
+    background: var(--accent-tint);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    color: var(--accent);
   }
 
-  .summary-cols { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
-  .dist-wrap { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 160px; }
-  .dist-bar {
-    display: flex;
-    height: 8px;
-    border-radius: 4px;
-    overflow: hidden;
-    background: var(--dot-inactive);
+  /* Intensity dots */
+  .intensity-row { display: flex; align-items: center; gap: 10px; }
+  .intensity-dots { display: flex; gap: 6px; flex-shrink: 0; }
+  .dot-btn {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: var(--dot-off);
+    transition: transform 0.12s, background 0.15s;
   }
-  .dist-seg { height: 100%; }
-  .dist-legend { display: flex; gap: 14px; flex-wrap: wrap; }
-  .dist-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-  .dist-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-btn:hover { transform: scale(1.18); }
+  .dot-btn.on.l1 { background: var(--dot1); box-shadow: 0 0 10px var(--dot1); }
+  .dot-btn.on.l2 { background: var(--dot2); box-shadow: 0 0 10px var(--dot2); }
+  .dot-btn.on.l3 { background: var(--dot3); box-shadow: 0 0 10px var(--dot3); }
+  .dot-btn.on.l4 { background: var(--dot4); box-shadow: 0 0 10px var(--dot4); }
+  .dot-btn.on.l5 { background: var(--dot5); box-shadow: 0 0 10px var(--dot5); }
 
-  .summary-hint { font-size: 10px; color: var(--text-dim); font-style: italic; }
-
-  /* Kraft summary */
-  .strength-summary {
+  /* Endurance entry */
+  .endurance-entry {
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 11px;
     display: flex;
     flex-direction: column;
     gap: 7px;
-    flex-shrink: 0;
+    background: var(--surface-2);
   }
-  .strength-summary-head { display: flex; align-items: baseline; gap: 10px; }
-  .strength-summary-title {
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
+  .entry-head { display: flex; align-items: center; gap: 6px; }
+  .entry-remove {
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .entry-remove:hover { color: var(--dot5); background: color-mix(in srgb, var(--dot5) 12%, transparent); }
+
+  .metric-row { display: flex; gap: 6px; align-items: center; }
+  .unit-field { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .unit-field input { width: 64px; text-align: right; -moz-appearance: textfield; }
+  .unit-field input::-webkit-outer-spin-button, .unit-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .unit-field span { font-size: 11px; color: var(--text-dim); font-weight: 600; }
+
+  .add-entry-btn {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: transparent;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--r-sm);
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 8px 12px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.15s;
+  }
+  .add-entry-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-tint); }
+
+  /* Koppel */
+  .koppel-toggle { display: flex; align-items: center; gap: 8px; }
+  .koppel-line { flex: 1; height: 1px; background: var(--border); }
+  .koppel-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .koppel-btn:hover { border-color: var(--koppel); color: var(--koppel); }
+  .koppel-btn.on {
+    border-color: var(--koppel);
+    background: color-mix(in srgb, var(--koppel) 13%, transparent);
+    color: var(--koppel);
+  }
+
+  /* ---------- Right panel ---------- */
+  .right-panel {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 24px 28px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .section-title {
+    font-family: var(--font-display), sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .section-sub { font-size: 12.5px; color: var(--text-muted); }
+
+  /* Summary */
+  .summary-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 130px;
+  }
+  .stat-value {
+    font-family: var(--font-display), sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .stat-card.zones { flex: 1; min-width: 240px; justify-content: center; gap: 9px; }
+  .dist-bar {
+    display: flex;
+    height: 9px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--dot-off);
+  }
+  .dist-seg { height: 100%; }
+  .dist-seg.z0 { background: var(--dot2); }
+  .dist-seg.z1 { background: var(--dot3); }
+  .dist-seg.z2 { background: var(--dot5); }
+  .dist-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+  .dist-legend-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
+  .dist-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dist-dot.z0 { background: var(--dot2); }
+  .dist-dot.z1 { background: var(--dot3); }
+  .dist-dot.z2 { background: var(--dot5); }
+  .summary-empty {
+    font-size: 13px;
+    color: var(--text-dim);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--r-lg);
+    padding: 18px 20px;
+  }
+
+  /* Preview grid */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+    gap: 12px;
+  }
+  .preview-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-card);
+    padding: 14px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 132px;
+  }
+  .pv-day-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 9px;
+  }
+  .pv-day {
+    font-family: var(--font-display), sans-serif;
+    font-size: 13px;
+    font-weight: var(--day-weight);
+    text-transform: var(--day-case);
+    letter-spacing: var(--day-ls);
+  }
+  .pv-date { font-size: 10.5px; color: var(--text-dim); font-weight: 500; }
+
+  .pv-strength { display: flex; flex-direction: column; gap: 3px; }
+  .pv-eyebrow {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .pv-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+  .pv-note { font-size: 11px; color: var(--text-muted); line-height: 1.35; }
+
+  .pv-endurance { display: flex; flex-direction: column; gap: 5px; }
+  .pv-sport {
+    font-size: 9px;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .strength-summary-meta { font-size: 11px; color: var(--text-muted); }
-  .muscle-tally { display: flex; flex-wrap: wrap; gap: 5px; }
-  .muscle-tally-item {
-    font-size: 10px;
-    color: #c4b9ff;
-    background: rgba(124,106,247,0.12);
-    border-radius: 5px;
-    padding: 2px 7px;
-  }
-
-  /* Preview: Sportart & Muskeln */
-  .preview-muscles {
-    font-size: 9px;
     color: var(--accent);
-    line-height: 1.3;
-    font-family: 'Space Mono', monospace;
   }
-  .preview-sport {
-    font-family: 'Space Mono', monospace;
-    font-size: 8px;
+  .pv-dots { display: flex; gap: 4.5px; }
+  .pv-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--dot-off); flex-shrink: 0; }
+  .pv-dot.on.l1 { background: var(--dot1); box-shadow: 0 0 6px var(--dot1); }
+  .pv-dot.on.l2 { background: var(--dot2); box-shadow: 0 0 6px var(--dot2); }
+  .pv-dot.on.l3 { background: var(--dot3); box-shadow: 0 0 6px var(--dot3); }
+  .pv-dot.on.l4 { background: var(--dot4); box-shadow: 0 0 6px var(--dot4); }
+  .pv-dot.on.l5 { background: var(--dot5); box-shadow: 0 0 6px var(--dot5); }
+
+  .pv-divider { height: 1px; background: var(--border); margin: 1px 0; }
+  .pv-koppel {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 8.5px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-muted);
-    margin-right: 5px;
+    color: var(--koppel);
   }
+  .pv-koppel-line { flex: 1; height: 1px; background: color-mix(in srgb, var(--koppel) 35%, transparent); }
+  .pv-empty { font-size: 12px; color: var(--text-dim); }
 
-  /* ---- Duration input ---- */
-  .strength-row { display: flex; gap: 6px; align-items: stretch; }
-  .duration-field {
+  /* Action buttons */
+  .actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
     display: flex;
     align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
+    gap: 8px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    letter-spacing: 0.005em;
   }
-  .duration-field input[type="number"] {
-    width: 46px;
-    text-align: right;
-    -moz-appearance: textfield;
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    box-shadow: var(--accent-shadow);
   }
-  .duration-field input[type="number"]::-webkit-outer-spin-button,
-  .duration-field input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-secondary {
+    background: var(--accent-tint);
+    color: var(--accent);
   }
-  .duration-field span {
-    font-size: 10px;
-    color: var(--text-dim);
-    font-family: 'Space Mono', monospace;
-  }
-
-  .export-row { display: flex; justify-content: flex-end; gap: 10px; }
-  .clear-btn {
-    display: flex;
-    align-items: center;
-    gap: 9px;
+  .btn-secondary:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .btn-ghost {
     background: transparent;
     color: var(--text-muted);
     border: 1px solid var(--border-strong);
-    border-radius: 8px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 10px 22px;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.1s;
-    letter-spacing: 0.01em;
   }
-  .clear-btn:hover {
+  .btn-ghost:hover {
     color: var(--dot5);
     border-color: var(--dot5);
-    background: rgba(248,113,113,0.08);
-    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--dot5) 8%, transparent);
   }
-  .clear-btn:active { transform: translateY(0); }
-  .export-btn {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    padding: 10px 22px;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: 0.01em;
-  }
-  .export-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-  .export-btn:active { transform: translateY(0); }
-  .export-btn.loading { opacity: 0.6; pointer-events: none; }
+  .btn.loading { opacity: 0.55; pointer-events: none; }
 
-  #export-root { position: fixed; left: -9999px; top: 0; }
+  /* ---------- Export canvases (offscreen) ---------- */
+  #export-root { position: fixed; left: -99999px; top: 0; }
+
+  .xp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+  .xp-day {
+    font-family: var(--font-display), sans-serif;
+    font-weight: var(--day-weight);
+    text-transform: var(--day-case);
+    letter-spacing: var(--day-ls);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1080px) {
+    body { overflow: auto; }
+    .app-body {
+      position: static;
+      display: block;
+      padding-top: 60px;
+      overflow: visible;
+    }
+    .left-panel, .right-panel {
+      width: 100%;
+      overflow: visible;
+      height: auto;
+    }
+    .left-panel { padding: 18px 16px 6px; }
+    .right-panel { padding: 18px 16px 40px; }
+    .app-header { padding: 0 16px; }
+    .week-range { display: none; }
+    input[type="text"], input[type="number"] { font-size: 16px; padding: 10px 12px; }
+    .dot-btn { width: 26px; height: 26px; }
+    .btn { padding: 13px 22px; }
+  }
+  @media (max-width: 480px) {
+    .preview-grid { grid-template-columns: 1fr 1fr; }
+    .app-title { font-size: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -557,47 +736,356 @@
 <div id="export-root"></div>
 
 <script type="text/babel">
-const { useState, useCallback } = React;
+// @ds-adherence-ignore -- omelette starter scaffold (raw elements/hex/px by design)
 
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+  .twk-num{display:flex;align-items:center;box-sizing:border-box;min-width:0;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),
+    0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;
+    display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" onMouseDown={(e) => e.stopPropagation()} onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+function TweakSection({ label, children }) {
+  return (<><div className="twk-sect">{label}</div>{children}</>);
+}
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl"><span>{label}</span>{value != null && <span className="twk-val">{value}</span>}</div>
+      {children}
+    </div>
+  );
+}
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'} role="switch" aria-checked={!!value} onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    return (
+      <TweakRow label={label}>
+        <select className="twk-field" value={value} onChange={(e) => {
+          const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === e.target.value);
+          onChange(m === undefined ? e.target.value : typeof m === 'object' ? m.value : m);
+        }}>
+          {options.map((o) => { const v = typeof o === 'object' ? o.value : o; return <option key={v} value={v}>{v}</option>; })}
+        </select>
+      </TweakRow>
+    );
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => { if (!trackRef.current) return; const v = segAt(ev.clientX); if (v !== valueRef.current) onChange(v); };
+    const up = () => { setDragging(false); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown} className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb" style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`, width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (<button key={o.value} type="button" role="radio" aria-checked={o.value === value}>{o.label}</button>))}
+      </div>
+    </TweakRow>
+  );
+}
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+const __TwkCheck = ({ light }) => (
+  <svg viewBox="0 0 14 14" aria-hidden="true">
+    <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" stroke={light ? 'rgba(0,0,0,.78)' : '#fff'} />
+  </svg>
+);
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" className="twk-swatch" value={value} onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const sup = rest.slice(0, 4);
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio" aria-checked={on} data-on={on ? '1' : '0'} aria-label={colors.join(', ')} title={colors.join(' · ')} style={{ background: hero }} onClick={() => onChange(o)}>
+              {sup.length > 0 && (<span>{sup.map((c, j) => <i key={j} style={{ background: c }} />)}</span>)}
+              {on && <__TwkCheck light={__twkIsLight(hero)} />}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+</script>
+
+<script type="text/babel">
+// Trainingsplanung v2 — App-Logik
+const { useState, useEffect, useCallback } = React;
+
+// ---------- Konstanten ----------
 const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const DAY_FULL = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-const DOT_COLORS = ['#a7f3c2', '#4ade80', '#facc15', '#fb923c', '#f87171'];
-const DOT_INACTIVE = '#2a2a32';
-
 const SPORTS = ['Schwimmen', 'Radfahren', 'Laufen', 'Sonstiges'];
+const SPORT_SHORT = { Schwimmen: 'Schwimmen', Radfahren: 'Rad', Laufen: 'Laufen', Sonstiges: 'Sonstiges' };
 
-// Sportart-spezifische Platzhalter für Strecke / Pace
 const SPORT_HINTS = {
-  Schwimmen: { distance: '2000 m', pace: '1:45 /100m' },
-  Radfahren: { distance: '30 km', pace: '32 km/h' },
-  Laufen:    { distance: '10 km', pace: '5:10 /km' },
-  Sonstiges: { distance: 'Strecke', pace: 'Pace' },
-  '':        { distance: 'Strecke', pace: 'Pace' },
+  Schwimmen: { distance: '2000', pace: '1:45 /100m' },
+  Radfahren: { distance: '30', pace: '32 km/h' },
+  Laufen:    { distance: '10', pace: '5:10 /km' },
+  Sonstiges: { distance: '–', pace: 'Pace' },
+  '':        { distance: '–', pace: 'Pace' },
 };
-
-const MUSCLES = ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps', 'Bauch/Core', 'Beine', 'Waden', 'Unterarme'];
-
-const WORKOUT_TEMPLATES = [
-  { name: 'Push', muscles: ['Brust', 'Schultern', 'Trizeps'] },
-  { name: 'Pull', muscles: ['Rücken', 'Bizeps', 'Unterarme'] },
-  { name: 'Leg', muscles: ['Beine', 'Waden'] },
-  { name: 'Oberkörper mit Armen', muscles: ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps', 'Bauch/Core'] },
-  { name: 'Oberkörper ohne Arme', muscles: ['Brust', 'Rücken', 'Schultern', 'Bauch/Core'] },
-];
-
 const SPORT_UNIT = { Schwimmen: 'm', Radfahren: 'km', Laufen: 'km', Sonstiges: 'km', '': 'km' };
 
+const ACCENTS = {
+  '#0A84FF': { contrast: '#ffffff' },
+  '#84CC16': { contrast: '#131803' },
+  '#FF6B2C': { contrast: '#ffffff' },
+  '#7C6AF7': { contrast: '#ffffff' },
+};
+const VARIANTS = { 'Pure': 'pure', 'Athletic': 'athletic', 'Soft': 'soft' };
+const BG_MODES = { 'Ohne': 'none', 'Aurora': 'aurora', 'Raster': 'raster', 'Verlauf': 'verlauf' };
+
+const TWEAK_DEFAULTS = {
+  "variante": "Pure",
+  "akzent": "#7C6AF7",
+  "hintergrund": "Raster",
+  "glow": true
+};
+
+// ---------- Daten ----------
 const defaultEnduranceEntry = () => ({ title: '', sport: '', intensity: 0, duration: 0, distance: 0, pace: '', label: '', note: '', coupled: false });
 const defaultDay = () => ({ strengthTitle: '', strengthNote: '', strengthDuration: 0, strengthMuscles: [], endurance: [] });
-
 const defaultWeek = () => DAYS.map(() => defaultDay());
 
 const migrateDay = (d) => {
-  // Migrate old format (single intensity/enduranceLabel) to new array format
   if (!d.endurance) {
-    const old = { title: '', intensity: d.intensity || 0, label: d.enduranceLabel || '', note: '' };
+    const old = { ...defaultEnduranceEntry(), intensity: d.intensity || 0, label: d.enduranceLabel || '' };
     const hasOld = old.intensity > 0 || old.label;
-    return { strengthTitle: d.strengthTitle || '', strengthNote: d.strengthNote || '', endurance: hasOld ? [old] : [] };
+    return { ...defaultDay(), strengthTitle: d.strengthTitle || '', strengthNote: d.strengthNote || '', endurance: hasOld ? [old] : [] };
   }
   return d;
 };
@@ -605,18 +1093,14 @@ const migrateDay = (d) => {
 const loadState = () => {
   try {
     const s = localStorage.getItem('trainingsplanung_v2');
-    if (s) return JSON.parse(s);
-    // Try migrate v1
+    if (s) return JSON.parse(s).map(migrateDay);
     const v1 = localStorage.getItem('trainingsplanung_v1');
     if (v1) return JSON.parse(v1).map(migrateDay);
   } catch(e) {}
   return defaultWeek();
 };
 
-const save = (week) => {
-  try { localStorage.setItem('trainingsplanung_v2', JSON.stringify(week)); } catch(e) {}
-};
-
+// ---------- Helpers ----------
 const getISOWeek = (d = new Date()) => {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   const dayNum = date.getUTCDay() || 7;
@@ -624,18 +1108,51 @@ const getISOWeek = (d = new Date()) => {
   const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
   return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
 };
-
-// ---- Stats ----
+const isoWeekYear = (d = new Date()) => {
+  const date = new Date(d);
+  date.setDate(d.getDate() - ((d.getDay() + 6) % 7) + 3);
+  return date.getFullYear();
+};
+const weeksInISOYear = (y) => getISOWeek(new Date(y, 11, 28));
+const currentSel = () => ({ year: isoWeekYear(), week: getISOWeek() });
+const weekKeyOf = (sel) => `${sel.year}-W${String(sel.week).padStart(2, '0')}`;
+const shiftSel = (sel, delta) => {
+  let { year, week } = sel;
+  week += delta;
+  while (week < 1) { year -= 1; week += weeksInISOYear(year); }
+  while (week > weeksInISOYear(year)) { week -= weeksInISOYear(year); year += 1; }
+  return { year, week };
+};
+const getDateOfISOWeek = (sel) => {
+  const simple = new Date(sel.year, 0, 4);
+  const dow = (simple.getDay() + 6) % 7;
+  const monday = new Date(simple);
+  monday.setDate(simple.getDate() - dow + (sel.week - 1) * 7);
+  return monday;
+};
+const getWeekDates = (sel) => {
+  const monday = getDateOfISOWeek(sel || currentSel());
+  return DAYS.map((_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+};
+const fmtDate = (d) => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.`;
+const fmtRange = (dates) => {
+  const a = dates[0], b = dates[6];
+  const months = ['Jan.','Feb.','März','Apr.','Mai','Juni','Juli','Aug.','Sep.','Okt.','Nov.','Dez.'];
+  if (a.getMonth() === b.getMonth()) return `${a.getDate()}.–${b.getDate()}. ${months[a.getMonth()]} ${b.getFullYear()}`;
+  return `${a.getDate()}. ${months[a.getMonth()]} – ${b.getDate()}. ${months[b.getMonth()]} ${b.getFullYear()}`;
+};
+const fmtRangeShort = (dates) => `${fmtDate(dates[0])} – ${fmtDate(dates[6])}`;
 
 const isActiveEntry = (e) => !!(
   (e.title && e.title.trim()) || (e.sport && e.sport.trim()) || e.intensity > 0 || (e.duration || 0) > 0 ||
   (parseFloat(e.distance) || 0) > 0 || (e.pace && e.pace.trim()) ||
   (e.label && e.label.trim()) || (e.note && e.note.trim())
 );
-
-// Zone of an intensity level: 0 = leicht (1-2), 1 = mittel (3), 2 = hart (4-5)
 const intensityZone = (i) => (i <= 2 ? 0 : i === 3 ? 1 : 2);
-
 const fmtDuration = (min) => {
   const m = Math.round(min || 0);
   if (m < 60) return m + ' min';
@@ -648,18 +1165,13 @@ const computeStats = (week) => {
   let strengthCount = 0, enduranceCount = 0, totalMinutes = 0;
   const zoneCounts = [0, 0, 0];
   const zoneMinutes = [0, 0, 0];
-  const perDayMinutes = week.map(() => 0);
-
-  week.forEach((day, di) => {
-    if (day.strengthTitle && day.strengthTitle.trim()) {
-      strengthCount++;
-    }
+  week.forEach((day) => {
+    if (day.strengthTitle && day.strengthTitle.trim()) strengthCount++;
     (day.endurance || []).forEach((e) => {
       if (!isActiveEntry(e)) return;
       enduranceCount++;
       const dur = e.duration || 0;
       totalMinutes += dur;
-      perDayMinutes[di] += dur;
       if (e.intensity > 0) {
         const z = intensityZone(e.intensity);
         zoneCounts[z]++;
@@ -667,247 +1179,204 @@ const computeStats = (week) => {
       }
     });
   });
-
   return {
-    strengthCount,
-    enduranceCount,
+    strengthCount, enduranceCount,
     sessions: strengthCount + enduranceCount,
-    totalMinutes,
-    zoneCounts,
-    zoneMinutes,
-    perDayMinutes,
+    totalMinutes, zoneCounts, zoneMinutes,
     hasDuration: zoneMinutes.some(m => m > 0),
   };
 };
 
-// ---- Input components ----
+const hexA = (hex, a) => {
+  const h = hex.replace('#','');
+  const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+  return `rgba(${r},${g},${b},${a})`;
+};
+const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
+const dayHasContent = (day) => !!(day.strengthTitle && day.strengthTitle.trim()) || (day.endurance || []).some(isActiveEntry);
+
+// Mehrwochen-Speicher
+const loadAllWeeks = () => {
+  try {
+    const s = localStorage.getItem('tp_weeks_v1');
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  const legacy = loadState();
+  const obj = {};
+  if (legacy.some(dayHasContent)) obj[weekKeyOf(currentSel())] = legacy;
+  return obj;
+};
+const saveAllWeeks = (all) => {
+  try { localStorage.setItem('tp_weeks_v1', JSON.stringify(all)); } catch(e) {}
+};
+
+// ---------- Eingabe-Komponenten ----------
 function IntensityDots({ value, onChange }) {
   return (
     <div className="intensity-dots">
       {[1,2,3,4,5].map(lvl => (
         <button
           key={lvl}
-          className={`dot-btn${value === lvl ? ' active' : ''}`}
-          title={`Intensität ${lvl}`}
+          className={`dot-btn glow${value === lvl ? ` on l${lvl}` : ''}`}
+          title={`Intensität ${lvl} von 5`}
           onClick={() => onChange(value === lvl ? 0 : lvl)}
-          style={{
-            background: value === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
-            color: value === lvl ? DOT_COLORS[lvl-1] : 'transparent',
-          }}
-        />
+        ></button>
       ))}
     </div>
   );
 }
 
-function EnduranceEntry({ entry, onChange, onRemove, showRemove }) {
+function EnduranceEntryInput({ entry, onChange, onRemove }) {
   const set = (field, val) => onChange({ ...entry, [field]: val });
   const hints = SPORT_HINTS[entry.sport] || SPORT_HINTS[''];
   const unit = SPORT_UNIT[entry.sport || ''];
   const distVal = parseFloat(entry.distance) || 0;
   return (
     <div className="endurance-entry">
-      <div className="endurance-entry-header">
-        <select
-          className="sport-select"
-          value={entry.sport || ''}
-          onChange={e => set('sport', e.target.value)}
-        >
-          <option value="">Sportart…</option>
-          {SPORTS.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <input
-          type="text"
-          placeholder="Titel (z.B. Longrun, Intervalle)"
-          value={entry.title}
-          onChange={e => set('title', e.target.value)}
-          style={{ flex: 1 }}
-        />
-        {showRemove && (
-          <button className="entry-remove-btn" onClick={onRemove} title="Entfernen">✕</button>
-        )}
+      <div className="entry-head">
+        <div className="sport-chips" style={{ flex: 1 }}>
+          {SPORTS.map(s => (
+            <button key={s} className={`sport-chip${entry.sport === s ? ' on' : ''}`}
+              onClick={() => set('sport', entry.sport === s ? '' : s)}>{SPORT_SHORT[s]}</button>
+          ))}
+        </div>
+        <button className="entry-remove" onClick={onRemove} title="Einheit entfernen">✕</button>
       </div>
+      <input type="text" placeholder="Titel (z.B. Longrun, Intervalle)" value={entry.title} onChange={e => set('title', e.target.value)} />
       <div className="intensity-row">
         <IntensityDots value={entry.intensity} onChange={v => set('intensity', v)} />
-        <div className="duration-field">
-          <input
-            type="number"
-            min="0"
-            placeholder="–"
-            value={entry.duration || ''}
-            onChange={e => set('duration', e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
-          />
+        <div className="unit-field">
+          <input type="number" min="0" placeholder="–" value={entry.duration || ''} onChange={e => set('duration', e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))} />
           <span>min</span>
         </div>
-        <input
-          type="text"
-          placeholder="Label (z.B. 4×8', lang)"
-          value={entry.label}
-          onChange={e => set('label', e.target.value)}
-          style={{ flex: 1 }}
-        />
       </div>
       <div className="metric-row">
-        <div className="duration-field" style={{ flex: 1 }}>
-          <input
-            type="number"
-            min="0"
-            step="0.1"
-            placeholder={hints.distance}
-            value={distVal || ''}
-            onChange={e => set('distance', e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value) || 0))}
-            style={{ width: 70 }}
-          />
+        <div className="unit-field">
+          <input type="number" min="0" step="0.1" placeholder={hints.distance} value={distVal || ''} onChange={e => set('distance', e.target.value === '' ? 0 : Math.max(0, parseFloat(e.target.value) || 0))} />
           <span>{unit}</span>
         </div>
-        <input
-          type="text"
-          placeholder={`Pace (z.B. ${hints.pace})`}
-          value={entry.pace || ''}
-          onChange={e => set('pace', e.target.value)}
-          style={{ flex: 1 }}
-        />
+        <input type="text" placeholder={`Pace (z.B. ${hints.pace})`} value={entry.pace || ''} onChange={e => set('pace', e.target.value)} style={{ flex: 1 }} />
       </div>
-      <input
-        type="text"
-        placeholder="Notiz (optional)"
-        value={entry.note}
-        onChange={e => set('note', e.target.value)}
-      />
+      <div className="metric-row">
+        <input type="text" placeholder="Label (z.B. 4×8', lang)" value={entry.label} onChange={e => set('label', e.target.value)} style={{ flex: 1 }} />
+        <input type="text" placeholder="Notiz" value={entry.note} onChange={e => set('note', e.target.value)} style={{ flex: 1.4 }} />
+      </div>
     </div>
   );
 }
 
-function DaySection({ idx, day, onChange }) {
+function DayCard({ idx, day, date, open, onToggle, onChange }) {
   const setDay = (newDay) => onChange(idx, newDay);
-
   const setEndurance = (eIdx, newEntry) => {
     const next = [...day.endurance];
     next[eIdx] = newEntry;
     setDay({ ...day, endurance: next });
   };
+  const addEndurance = () => setDay({ ...day, endurance: [...day.endurance, defaultEnduranceEntry()] });
+  const removeEndurance = (eIdx) => setDay({ ...day, endurance: day.endurance.filter((_, i) => i !== eIdx) });
 
-  const addEndurance = () => {
-    setDay({ ...day, endurance: [...day.endurance, defaultEnduranceEntry()] });
-  };
-
-  const removeEndurance = (eIdx) => {
-    setDay({ ...day, endurance: day.endurance.filter((_, i) => i !== eIdx) });
-  };
-
-  const applyTemplate = (name) => {};  // unused, kept for data compat
+  const hasContent = dayHasContent(day);
+  const activeEnd = (day.endurance || []).filter(isActiveEntry);
 
   return (
-    <div className="day-section">
-      <div className="day-label">{DAY_FULL[idx]}</div>
-
-      {/* Kraft */}
-      <div className="block-group">
-        <div className="block-label">Kraft</div>
-        <input
-          type="text"
-          placeholder="Titel (z.B. Push / Pull / Legs)"
-          value={day.strengthTitle}
-          onChange={e => setDay({ ...day, strengthTitle: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Notiz (optional)"
-          value={day.strengthNote}
-          onChange={e => setDay({ ...day, strengthNote: e.target.value })}
-        />
-      </div>
-
-      {/* Ausdauer */}
-      <div className="block-group">
-        <div className="block-label">Ausdauer</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {day.endurance.map((entry, eIdx) => (
-            <React.Fragment key={eIdx}>
-              <EnduranceEntry
-                entry={entry}
-                onChange={(ne) => setEndurance(eIdx, ne)}
-                onRemove={() => removeEndurance(eIdx)}
-                showRemove={day.endurance.length > 0}
-              />
-              {eIdx < day.endurance.length - 1 && (
-                <div className="koppel-toggle">
-                  <div className="koppel-line"></div>
-                  <button
-                    className={`koppel-btn${entry.coupled ? ' active' : ''}`}
-                    onClick={() => setEndurance(eIdx, { ...entry, coupled: !entry.coupled })}
-                    title="Als Koppeltraining markieren"
-                  >
-                    ⛓ {entry.coupled ? 'Koppeltraining' : 'koppeln'}
-                  </button>
-                  <div className="koppel-line"></div>
-                </div>
-              )}
-            </React.Fragment>
+    <div className={`day-card${open ? ' open' : ''}${hasContent ? ' has-content' : ''}`}>
+      <button className="day-head" onClick={onToggle}>
+        <span className="day-name">{DAY_FULL[idx]}</span>
+        <span className="day-date">{fmtDate(date)}</span>
+        <span className="day-badges">
+          {!open && day.strengthTitle.trim() && (
+            <span className="day-badge">Kraft</span>
+          )}
+          {!open && activeEnd.map((e, i) => (
+            <span key={i} className="day-badge">
+              {e.intensity > 0 && <span className="mini-dot" style={{ background: `var(--dot${e.intensity})` }}></span>}
+              {e.sport ? SPORT_SHORT[e.sport] : (e.title || 'Ausdauer')}
+            </span>
           ))}
-          <button className="add-entry-btn" onClick={addEndurance}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-              <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            Ausdauereinheit hinzufügen
-          </button>
+        </span>
+        <span className="day-chevron">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6l5 5 5-5"></path>
+          </svg>
+        </span>
+      </button>
+
+      <div className="day-body-wrap">
+        <div className="day-body-inner">
+          <div className="day-body">
+            <div>
+              <div className="block-label">Kraft</div>
+              <div className="stack-6">
+                <input type="text" placeholder="Titel (z.B. Push / Pull / Legs)" value={day.strengthTitle} onChange={e => setDay({ ...day, strengthTitle: e.target.value })} />
+                <input type="text" placeholder="Notiz (optional)" value={day.strengthNote} onChange={e => setDay({ ...day, strengthNote: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <div className="block-label">Ausdauer</div>
+              <div className="stack-6">
+                {day.endurance.map((entry, eIdx) => (
+                  <React.Fragment key={eIdx}>
+                    <EnduranceEntryInput entry={entry} onChange={(ne) => setEndurance(eIdx, ne)} onRemove={() => removeEndurance(eIdx)} />
+                    {eIdx < day.endurance.length - 1 && (
+                      <div className="koppel-toggle">
+                        <div className="koppel-line"></div>
+                        <button className={`koppel-btn${entry.coupled ? ' on' : ''}`} onClick={() => setEndurance(eIdx, { ...entry, coupled: !entry.coupled })} title="Als Koppeltraining markieren">
+                          ⛓ {entry.coupled ? 'Koppeltraining' : 'koppeln'}
+                        </button>
+                        <div className="koppel-line"></div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+                <button className="add-entry-btn" onClick={addEndurance}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M6 1v10M1 6h10"></path>
+                  </svg>
+                  Ausdauereinheit hinzufügen
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ---- Week summary ----
-
-const ZONE_COLORS = [DOT_COLORS[1], DOT_COLORS[2], DOT_COLORS[4]]; // leicht / mittel / hart
+// ---------- Wochenübersicht ----------
 const ZONE_LABELS = ['leicht', 'mittel', 'hart'];
 
 function WeekSummary({ week }) {
   const s = computeStats(week);
-
   if (s.sessions === 0) {
-    return (
-      <div className="week-summary">
-        <div className="summary-empty">Noch keine Einheiten geplant.</div>
-      </div>
-    );
+    return <div className="summary-empty">Noch keine Einheiten geplant — wähle links einen Tag und leg los.</div>;
   }
-
-  // Verteilungsbalken: nach Minuten, sonst nach Anzahl
   const distBasis = s.hasDuration ? s.zoneMinutes : s.zoneCounts;
   const distTotal = distBasis.reduce((a, b) => a + b, 0);
-
   return (
-    <div className="week-summary">
-      <div className="summary-stats">
-        <div className="summary-stat">
-          <div className="summary-stat-value">{s.sessions}</div>
-          <div className="summary-stat-label">Einheiten</div>
-        </div>
-        <div className="summary-stat">
-          <div className="summary-stat-value">{s.totalMinutes > 0 ? fmtDuration(s.totalMinutes) : '–'}</div>
-          <div className="summary-stat-label">Gesamtzeit</div>
-        </div>
+    <div className="summary-row">
+      <div className="stat-card">
+        <div className="stat-value">{s.sessions}</div>
+        <div className="stat-label">Einheiten</div>
       </div>
-
+      <div className="stat-card">
+        <div className="stat-value">{s.totalMinutes > 0 ? fmtDuration(s.totalMinutes) : '–'}</div>
+        <div className="stat-label">Gesamtzeit</div>
+      </div>
       {distTotal > 0 && (
-        <div className="dist-wrap">
+        <div className="stat-card zones">
           <div className="dist-bar">
             {distBasis.map((v, z) => v > 0 && (
-              <div
-                key={z}
-                className="dist-seg"
-                style={{ width: `${(v / distTotal) * 100}%`, background: ZONE_COLORS[z] }}
-                title={`${ZONE_LABELS[z]}: ${s.hasDuration ? fmtDuration(v) : v + ' Einh.'}`}
-              />
+              <div key={z} className={`dist-seg z${z}`} style={{ width: `${(v / distTotal) * 100}%` }}
+                title={`${ZONE_LABELS[z]}: ${s.hasDuration ? fmtDuration(v) : v + ' Einh.'}`}></div>
             ))}
           </div>
           <div className="dist-legend">
             {ZONE_LABELS.map((lbl, z) => (
               <div key={z} className="dist-legend-item">
-                <span className="dist-dot" style={{ background: ZONE_COLORS[z] }}></span>
-                {lbl} {s.zoneCounts[z] > 0 ? `(${s.zoneCounts[z]})` : ''}
+                <span className={`dist-dot z${z}`}></span>
+                {lbl}{s.zoneCounts[z] > 0 ? ` (${s.zoneCounts[z]})` : ''}
               </div>
             ))}
           </div>
@@ -917,207 +1386,139 @@ function WeekSummary({ week }) {
   );
 }
 
-// ---- Preview components ----
-
-function PreviewDots({ intensity }) {
+// ---------- Vorschau ----------
+function PvDots({ intensity }) {
   return (
-    <div className="preview-dots">
+    <div className="pv-dots">
       {[1,2,3,4,5].map(lvl => (
-        <div
-          key={lvl}
-          className="preview-dot"
-          style={{
-            background: intensity === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
-            boxShadow: intensity === lvl ? `0 0 5px ${DOT_COLORS[lvl-1]}` : 'none',
-          }}
-        />
+        <div key={lvl} className={`pv-dot glow${intensity === lvl ? ` on l${lvl}` : ''}`}></div>
       ))}
     </div>
   );
 }
 
-function PreviewCard({ dayIdx, day }) {
-  const hasStrength = day.strengthTitle.trim();
-  const activeEndurance = day.endurance.filter(isActiveEntry);
-  const isEmpty = !hasStrength && activeEndurance.length === 0;
-
+function EnduranceLines({ entry }) {
+  const distNum = parseFloat(entry.distance) || 0;
+  const distStr = distNum > 0 ? `${distNum} ${SPORT_UNIT[entry.sport || '']}` : '';
+  const durStr = (entry.duration || 0) > 0 ? fmtDuration(entry.duration) : '';
+  const metric = [durStr, distStr, entry.pace].filter(x => x && x.trim()).join(' · ');
   return (
-    <div className="preview-card">
-      <div className="preview-day-name">{DAYS[dayIdx]}</div>
-      {isEmpty && <div className="preview-empty">—</div>}
-
-      {hasStrength && (
-        <div className="preview-strength">
-          <div className="preview-strength-title">{day.strengthTitle}</div>
-          {day.strengthNote && <div className="preview-strength-note">{day.strengthNote}</div>}
-        </div>
-      )}
-
-      {activeEndurance.map((entry, i) => {
-        const heading = entry.title || entry.sport;
-        const distNum = parseFloat(entry.distance) || 0;
-        const distStr = distNum > 0 ? `${distNum} ${SPORT_UNIT[entry.sport || '']}` : '';
-        const metric = [distStr, entry.pace].filter(x => x && x.trim()).join(' · ');
-        return (
-        <React.Fragment key={i}>
-          {(hasStrength || i > 0) && (
-            (i > 0 && activeEndurance[i-1].coupled)
-              ? <div className="preview-koppel-badge"><div className="preview-koppel-line"></div>⛓ Koppel<div className="preview-koppel-line"></div></div>
-              : <div className="preview-divider"></div>
-          )}
-          <div className="preview-endurance-block">
-            {heading && (
-              <div className="preview-endurance-title">
-                {entry.sport && entry.title && <span className="preview-sport">{entry.sport}</span>}
-                {heading}
-              </div>
-            )}
-            {entry.intensity > 0 && <PreviewDots intensity={entry.intensity} />}
-            {metric && <div className="preview-endurance-note">{metric}</div>}
-            {entry.label && <div className="preview-endurance-note">{entry.label}</div>}
-            {entry.note && <div className="preview-endurance-note" style={{ fontStyle: 'italic' }}>{entry.note}</div>}
-          </div>
-        </React.Fragment>
-        );
-      })}
+    <div className="pv-endurance">
+      {entry.sport && <div className="pv-sport">{entry.sport}</div>}
+      {entry.title && <div className="pv-title" style={{ fontSize: 12.5 }}>{entry.title}</div>}
+      {entry.intensity > 0 && <PvDots intensity={entry.intensity} />}
+      {metric && <div className="pv-note">{metric}</div>}
+      {entry.label && <div className="pv-note">{entry.label}</div>}
+      {entry.note && <div className="pv-note" style={{ fontStyle: 'italic' }}>{entry.note}</div>}
     </div>
   );
 }
 
-// ---- Export Canvas ----
+function PreviewCard({ dayIdx, day, date }) {
+  const hasStrength = day.strengthTitle.trim();
+  const activeEndurance = day.endurance.filter(isActiveEntry);
+  const isEmpty = !hasStrength && activeEndurance.length === 0;
+  return (
+    <div className="preview-card">
+      <div className="pv-day-row">
+        <span className="pv-day">{DAYS[dayIdx]}</span>
+        <span className="pv-date">{fmtDate(date)}</span>
+      </div>
+      {isEmpty && <div className="pv-empty">Ruhetag</div>}
+      {hasStrength && (
+        <div className="pv-strength">
+          <div className="pv-eyebrow">Kraft</div>
+          <div className="pv-title">{day.strengthTitle}</div>
+          {day.strengthNote && <div className="pv-note">{day.strengthNote}</div>}
+        </div>
+      )}
+      {activeEndurance.map((entry, i) => (
+        <React.Fragment key={i}>
+          {(hasStrength || i > 0) && (
+            (i > 0 && activeEndurance[i-1].coupled)
+              ? <div className="pv-koppel"><span className="pv-koppel-line"></span>⛓ Koppel<span className="pv-koppel-line"></span></div>
+              : <div className="pv-divider"></div>
+          )}
+          <EnduranceLines entry={entry} />
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
 
-function ExportCanvas({ week }) {
+// ---------- Export: Querformat ----------
+function ExportWide({ week, dates, accent, kw }) {
   const s = computeStats(week);
   const distBasis = s.hasDuration ? s.zoneMinutes : s.zoneCounts;
   const distTotal = distBasis.reduce((a, b) => a + b, 0);
   return (
-    <div id="export-canvas" style={{
-      width: 1400,
-      background: '#111113',
-      fontFamily: "'Space Grotesk', sans-serif",
-      padding: '32px 40px 40px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 16,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#7c6af7' }}></div>
-        <span style={{
-          fontFamily: "'Space Mono', monospace",
-          fontSize: 12, fontWeight: 700,
-          letterSpacing: '0.08em',
-          color: '#6b6b78',
-          textTransform: 'uppercase',
-        }}>Wochenplanung</span>
-        <span style={{
-          fontFamily: "'Space Mono', monospace",
-          fontSize: 12, fontWeight: 700,
-          letterSpacing: '0.08em',
-          color: '#7c6af7',
-          textTransform: 'uppercase',
-        }}>KW {String(getISOWeek()).padStart(2, '0')}</span>
-      </div>
-
-      {s.sessions > 0 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 28,
-          background: '#18181b',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 10,
-          padding: '12px 18px',
-        }}>
-          {[
-            ['Einheiten', String(s.sessions)],
-            ['Gesamtzeit', s.totalMinutes > 0 ? fmtDuration(s.totalMinutes) : '–'],
-          ].map(([label, value]) => (
-            <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <span style={{ fontSize: 18, fontWeight: 700, color: '#e8e8ec', lineHeight: 1 }}>{value}</span>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b6b78' }}>{label}</span>
-            </div>
-          ))}
-          {distTotal > 0 && (
-            <div style={{ display: 'flex', height: 8, flex: 1, borderRadius: 4, overflow: 'hidden', background: '#2a2a32', maxWidth: 360 }}>
-              {distBasis.map((v, z) => v > 0 && (
-                <div key={z} style={{ width: `${(v / distTotal) * 100}%`, background: ZONE_COLORS[z] }}></div>
-              ))}
-            </div>
-          )}
+    <div id="export-wide" style={{ width: 1500, background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", padding: '36px 44px 44px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke={ACCENTS[accent]?.contrast || '#fff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 9h3l2.5-6 4 12L13 9h4"></path></svg>
         </div>
-      )}
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 10 }}>
+        <span style={{ fontFamily: "var(--font-display), sans-serif", fontSize: 22, fontWeight: 800, letterSpacing: '-0.01em' }}>Trainingsplan</span>
+        <span style={{ background: hexA(accent, 0.14), color: accent, fontSize: 14, fontWeight: 700, padding: '5px 14px', borderRadius: 999 }}>KW {String(kw).padStart(2, '0')}</span>
+        <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>{fmtRange(dates)}</span>
+        <span style={{ flex: 1 }}></span>
+        {s.sessions > 0 && (
+          <span style={{ fontSize: 14, color: 'var(--text-muted)', display: 'flex', gap: 22 }}>
+            <span><b style={{ color: 'var(--text)' }}>{s.sessions}</b> Einheiten</span>
+            {s.totalMinutes > 0 && <span><b style={{ color: 'var(--text)' }}>{fmtDuration(s.totalMinutes)}</b> gesamt</span>}
+          </span>
+        )}
+        {distTotal > 0 && (
+          <span style={{ display: 'flex', height: 9, width: 180, borderRadius: 5, overflow: 'hidden', background: 'var(--dot-off)' }}>
+            {distBasis.map((v, z) => v > 0 && (<span key={z} style={{ width: `${(v / distTotal) * 100}%`, background: ['var(--dot2)', 'var(--dot3)', 'var(--dot5)'][z] }}></span>))}
+          </span>
+        )}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 12 }}>
         {week.map((day, idx) => {
           const hasStrength = day.strengthTitle.trim();
           const activeEnd = day.endurance.filter(isActiveEntry);
           const isEmpty = !hasStrength && activeEnd.length === 0;
           return (
-            <div key={idx} style={{
-              background: '#18181b',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 10,
-              padding: '14px 12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
-            }}>
-              <div style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: 9, fontWeight: 700,
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: '#6b6b78',
-                borderBottom: '1px solid rgba(255,255,255,0.07)',
-                paddingBottom: 8,
-              }}>{DAYS[idx]}</div>
-
-              {isEmpty && <div style={{ fontSize: 10, color: '#3a3a45', fontStyle: 'italic', fontFamily: "'Space Mono', monospace" }}>—</div>}
-
+            <div key={idx} className="xp-card" style={{ padding: '15px 14px', display: 'flex', flexDirection: 'column', gap: 11, minHeight: 150 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 9 }}>
+                <span className="xp-day" style={{ fontSize: 15 }}>{DAYS[idx]}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--text-dim)', fontWeight: 500 }}>{fmtDate(dates[idx])}</span>
+              </div>
+              {isEmpty && <div style={{ fontSize: 12.5, color: 'var(--text-dim)' }}>Ruhetag</div>}
               {hasStrength && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#e8e8ec', lineHeight: 1.3 }}>{day.strengthTitle}</div>
-                  {day.strengthNote && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{day.strengthNote}</div>}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'var(--text-dim)' }}>Kraft</div>
+                  <div style={{ fontSize: 14.5, fontWeight: 700, lineHeight: 1.3 }}>{day.strengthTitle}</div>
+                  {day.strengthNote && <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.35 }}>{day.strengthNote}</div>}
                 </div>
               )}
-
               {activeEnd.map((entry, i) => {
-                const heading = entry.title || entry.sport;
                 const distNum = parseFloat(entry.distance) || 0;
                 const distStr = distNum > 0 ? `${distNum} ${SPORT_UNIT[entry.sport || '']}` : '';
-                const metric = [distStr, entry.pace].filter(x => x && x.trim()).join(' · ');
+                const durStr = (entry.duration || 0) > 0 ? fmtDuration(entry.duration) : '';
+                const metric = [durStr, distStr, entry.pace].filter(x => x && x.trim()).join(' · ');
                 return (
-                <React.Fragment key={i}>
-                  {(hasStrength || i > 0) && (
-                    (i > 0 && activeEnd[i-1].coupled)
-                      ? <div style={{ display: 'flex', alignItems: 'center', gap: 4, margin: '2px 0' }}>
-                          <div style={{ flex: 1, height: 1, background: 'rgba(245,158,11,0.3)' }}></div>
-                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 7, fontWeight: 700, letterSpacing: '0.1em', color: '#f59e0b', textTransform: 'uppercase' }}>⛓ Koppel</span>
-                          <div style={{ flex: 1, height: 1, background: 'rgba(245,158,11,0.3)' }}></div>
+                  <React.Fragment key={i}>
+                    {(hasStrength || i > 0) && (
+                      (i > 0 && activeEnd[i-1].coupled)
+                        ? <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--koppel)' }}>
+                            <span style={{ flex: 1, height: 1, background: hexA('#f59e0b', 0.35) }}></span>⛓ Koppel<span style={{ flex: 1, height: 1, background: hexA('#f59e0b', 0.35) }}></span>
+                          </div>
+                        : <div style={{ height: 1, background: 'var(--border)' }}></div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      {entry.sport && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: accent }}>{entry.sport}</div>}
+                      {entry.title && <div style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.3 }}>{entry.title}</div>}
+                      {entry.intensity > 0 && (
+                        <div style={{ display: 'flex', gap: 5 }}>
+                          {[1,2,3,4,5].map(lvl => (<span key={lvl} style={{ width: 10, height: 10, borderRadius: '50%', display: 'inline-block', background: entry.intensity === lvl ? `var(--dot${lvl})` : 'var(--dot-off)' }}></span>))}
                         </div>
-                      : <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '2px 0' }}></div>
-                  )}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {heading && (
-                      <div style={{ fontSize: 11, fontWeight: 600, color: '#e8e8ec', lineHeight: 1.3 }}>
-                        {entry.sport && entry.title && <span style={{ color: '#6b6b78', fontWeight: 700, fontSize: 9, fontFamily: "'Space Mono', monospace", marginRight: 5, textTransform: 'uppercase' }}>{entry.sport}</span>}
-                        {heading}
-                      </div>
-                    )}
-                    {entry.intensity > 0 && (
-                      <div style={{ display: 'flex', gap: 5 }}>
-                        {[1,2,3,4,5].map(lvl => (
-                          <div key={lvl} style={{
-                            width: 9, height: 9, borderRadius: '50%',
-                            background: entry.intensity === lvl ? DOT_COLORS[lvl-1] : DOT_INACTIVE,
-                            boxShadow: entry.intensity === lvl ? `0 0 6px ${DOT_COLORS[lvl-1]}` : 'none',
-                          }}></div>
-                        ))}
-                      </div>
-                    )}
-                    {metric && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{metric}</div>}
-                    {entry.label && <div style={{ fontSize: 10, color: '#6b6b78', lineHeight: 1.3 }}>{entry.label}</div>}
-                    {entry.note && <div style={{ fontSize: 10, color: '#6b6b78', fontStyle: 'italic', lineHeight: 1.3 }}>{entry.note}</div>}
-                  </div>
-                </React.Fragment>
+                      )}
+                      {metric && <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.35 }}>{metric}</div>}
+                      {entry.label && <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.35 }}>{entry.label}</div>}
+                      {entry.note && <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.35 }}>{entry.note}</div>}
+                    </div>
+                  </React.Fragment>
                 );
               })}
             </div>
@@ -1128,97 +1529,298 @@ function ExportCanvas({ week }) {
   );
 }
 
-// ---- App ----
+// ---------- Export: Story (9:16) ----------
+function ExportStory({ week, dates, accent, kw }) {
+  const s = computeStats(week);
+  const distBasis = s.hasDuration ? s.zoneMinutes : s.zoneCounts;
+  const distTotal = distBasis.reduce((a, b) => a + b, 0);
+  return (
+    <div id="export-story" style={{ width: 540, minHeight: 960, background: 'var(--bg)', color: 'var(--text)', fontFamily: "'Hanken Grotesk', sans-serif", padding: '44px 38px', display: 'flex', flexDirection: 'column', gap: 22 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke={ACCENTS[accent]?.contrast || '#fff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 9h3l2.5-6 4 12L13 9h4"></path></svg>
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Trainingsplan</span>
+        </div>
+        <div style={{ fontFamily: "var(--font-display), sans-serif", fontSize: 42, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>KW {String(kw).padStart(2, '00')}</div>
+        <div style={{ fontSize: 15, color: 'var(--text-muted)' }}>{fmtRange(dates)}</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+        {week.map((day, idx) => {
+          const hasStrength = day.strengthTitle.trim();
+          const activeEnd = day.endurance.filter(isActiveEntry);
+          const isEmpty = !hasStrength && activeEnd.length === 0;
+          return (
+            <div key={idx} className="xp-card" style={{ padding: '13px 16px', display: 'flex', gap: 14 }}>
+              <div style={{ width: 52, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 1, paddingTop: 1 }}>
+                <span className="xp-day" style={{ fontSize: 15 }}>{DAYS[idx]}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-dim)', fontWeight: 500 }}>{fmtDate(dates[idx])}</span>
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+                {isEmpty && <div style={{ fontSize: 13, color: 'var(--text-dim)', paddingTop: 1 }}>Ruhetag</div>}
+                {hasStrength && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.11em', textTransform: 'uppercase', color: 'var(--text-dim)' }}>Kraft</div>
+                    <div style={{ fontSize: 14.5, fontWeight: 700, lineHeight: 1.3 }}>{day.strengthTitle}</div>
+                    {day.strengthNote && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{day.strengthNote}</div>}
+                  </div>
+                )}
+                {activeEnd.map((entry, i) => {
+                  const distNum = parseFloat(entry.distance) || 0;
+                  const distStr = distNum > 0 ? `${distNum} ${SPORT_UNIT[entry.sport || '']}` : '';
+                  const durStr = (entry.duration || 0) > 0 ? fmtDuration(entry.duration) : '';
+                  const metric = [durStr, distStr, entry.pace, entry.label].filter(x => x && String(x).trim()).join(' · ');
+                  const coupledBefore = i > 0 && activeEnd[i-1].coupled;
+                  return (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3, borderTop: (hasStrength || i > 0) ? `1px ${coupledBefore ? 'dashed ' + hexA('#f59e0b', 0.5) : 'solid var(--border)'}` : 'none', paddingTop: (hasStrength || i > 0) ? 8 : 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        {entry.sport && <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: accent }}>{entry.sport}</span>}
+                        {coupledBefore && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--koppel)', textTransform: 'uppercase' }}>⛓ Koppel</span>}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {entry.title && <span style={{ fontSize: 14, fontWeight: 700 }}>{entry.title}</span>}
+                        {entry.intensity > 0 && (
+                          <span style={{ display: 'flex', gap: 4 }}>
+                            {[1,2,3,4,5].map(lvl => (<span key={lvl} style={{ width: 9, height: 9, borderRadius: '50%', display: 'inline-block', background: entry.intensity === lvl ? `var(--dot${lvl})` : 'var(--dot-off)' }}></span>))}
+                          </span>
+                        )}
+                      </div>
+                      {metric && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{metric}</div>}
+                      {entry.note && <div style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>{entry.note}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {s.sessions > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, borderTop: '1px solid var(--border)', paddingTop: 18 }}>
+          <span style={{ fontSize: 13.5, color: 'var(--text-muted)' }}><b style={{ color: 'var(--text)', fontSize: 16 }}>{s.sessions}</b> Einheiten</span>
+          {s.totalMinutes > 0 && <span style={{ fontSize: 13.5, color: 'var(--text-muted)' }}><b style={{ color: 'var(--text)', fontSize: 16 }}>{fmtDuration(s.totalMinutes)}</b> gesamt</span>}
+          {distTotal > 0 && (
+            <span style={{ display: 'flex', height: 8, flex: 1, borderRadius: 4, overflow: 'hidden', background: 'var(--dot-off)' }}>
+              {distBasis.map((v, z) => v > 0 && (<span key={z} style={{ width: `${(v / distTotal) * 100}%`, background: ['var(--dot2)', 'var(--dot3)', 'var(--dot5)'][z] }}></span>))}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
+// ---------- App ----------
 function App() {
-  const [week, setWeek] = useState(loadState);
-  const [exporting, setExporting] = useState(false);
+  const [all, setAll] = useState(loadAllWeeks);
+  const [sel, setSel] = useState(currentSel);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('tp_theme') || 'dark'; } catch(e) { return 'dark'; }
+  });
+  const key = weekKeyOf(sel);
+  const week = all[key] || defaultWeek();
+  const [openDays, setOpenDays] = useState(() => week.map(dayHasContent));
+  const [exporting, setExporting] = useState('');
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
-  const handleChange = useCallback((idx, newDay) => {
-    setWeek(prev => {
-      const next = [...prev];
-      next[idx] = newDay;
-      save(next);
-      return next;
-    });
-  }, []);
+  const dates = getWeekDates(sel);
+  const kw = sel.week;
 
-  const handleClear = () => {
-    if (!confirm('Wirklich alle Einträge löschen? Das kann nicht rückgängig gemacht werden.')) return;
-    const fresh = defaultWeek();
-    setWeek(fresh);
-    save(fresh);
+  const selectWeek = (ns) => {
+    setSel(ns);
+    const nw = all[weekKeyOf(ns)] || defaultWeek();
+    setOpenDays(nw.map(dayHasContent));
+    setPickerOpen(false);
   };
 
-  const handleExport = async () => {
-    setExporting(true);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem('tp_theme', theme); } catch(e) {}
+  }, [theme]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute('data-variant', VARIANTS[t.variante] || 'pure');
+    root.setAttribute('data-glow', t.glow ? 'on' : 'off');
+    root.setAttribute('data-bg', BG_MODES[t.hintergrund] || 'raster');
+    const accent = t.akzent;
+    const meta = ACCENTS[accent] || { contrast: '#fff' };
+    root.style.setProperty('--accent', accent);
+    root.style.setProperty('--accent-contrast', meta.contrast);
+    root.style.setProperty('--accent-tint', hexA(accent, 0.13));
+    root.style.setProperty('--accent-ring', hexA(accent, 0.25));
+    root.style.setProperty('--accent-shadow', `0 5px 16px ${hexA(accent, 0.35)}`);
+  }, [t.variante, t.akzent, t.glow, t.hintergrund]);
+
+  const handleChange = useCallback((idx, newDay) => {
+    setAll(prev => {
+      const cw = prev[key] ? [...prev[key]] : defaultWeek();
+      cw[idx] = newDay;
+      const next = { ...prev, [key]: cw };
+      saveAllWeeks(next);
+      return next;
+    });
+  }, [key]);
+
+  const toggleDay = (idx) => {
+    setOpenDays(prev => prev.map((o, i) => i === idx ? !o : o));
+  };
+
+  const handleClear = () => {
+    if (!confirm(`Wirklich alle Einträge der KW ${String(kw).padStart(2, '0')} löschen? Das kann nicht rückgängig gemacht werden.`)) return;
+    setAll(prev => {
+      const next = { ...prev };
+      delete next[key];
+      saveAllWeeks(next);
+      return next;
+    });
+    setOpenDays(DAYS.map(() => false));
+  };
+
+  const handleExport = async (which) => {
+    setExporting(which);
     try {
-      const el = document.getElementById('export-canvas');
+      const el = document.getElementById(which === 'story' ? 'export-story' : 'export-wide');
       const canvas = await html2canvas(el, {
-        backgroundColor: '#111113',
+        backgroundColor: cssVar('--bg') || '#0c0c0e',
         scale: 2,
         useCORS: true,
         logging: false,
       });
       const link = document.createElement('a');
-      link.download = 'trainingsplan.png';
+      link.download = which === 'story'
+        ? `trainingsplan-kw${String(kw).padStart(2,'0')}-story.png`
+        : `trainingsplan-kw${String(kw).padStart(2,'0')}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch(e) {
       alert('Export fehlgeschlagen.');
     }
-    setExporting(false);
+    setExporting('');
   };
 
   return (
-    <>
-      <div className="app-header">
-        <div className="app-logo">
-          <div className="app-logo-dot"></div>
-          Trainingsplanung
+    <React.Fragment>
+      <header className="app-header">
+        <div className="logo-mark">
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="var(--accent-contrast)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 9h3l2.5-6 4 12L13 9h4"></path>
+          </svg>
         </div>
-        <div className="app-header-label">
-          {new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+        <span className="app-title">Trainingsplanung</span>
+        <div className="wk-group">
+          <button className="wk-arrow" onClick={() => selectWeek(shiftSel(sel, -1))} title="Vorherige Woche">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 3L5 8l5 5"></path></svg>
+          </button>
+          <button className="kw-pill" onClick={() => setPickerOpen(o => !o)} title="Woche auswählen">
+            KW {String(kw).padStart(2, '0')}{sel.year !== isoWeekYear() ? ` · ${sel.year}` : ''}
+            <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6l5 5 5-5"></path></svg>
+          </button>
+          <button className="wk-arrow" onClick={() => selectWeek(shiftSel(sel, 1))} title="Nächste Woche">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3l5 5-5 5"></path></svg>
+          </button>
+          {pickerOpen && (
+            <React.Fragment>
+              <div className="wk-overlay" onClick={() => setPickerOpen(false)}></div>
+              <div className="wk-pop">
+                {key !== weekKeyOf(currentSel()) && (
+                  <button className="wk-item today-link" onClick={() => selectWeek(currentSel())}>Zur aktuellen Woche</button>
+                )}
+                {Array.from({ length: 15 }, (_, i) => shiftSel(sel, i - 4)).map(ws => {
+                  const k = weekKeyOf(ws);
+                  const has = Array.isArray(all[k]) && all[k].some(dayHasContent);
+                  const isNow = k === weekKeyOf(currentSel());
+                  return (
+                    <button key={k} className={`wk-item${k === key ? ' sel' : ''}`} onClick={() => selectWeek(ws)}>
+                      <span style={{ fontWeight: isNow ? 800 : 600 }}>KW {String(ws.week).padStart(2, '0')}{ws.year !== isoWeekYear() ? ` · ${ws.year}` : ''}</span>
+                      {has && <span className="wk-dot"></span>}
+                      <span className="wk-range">{fmtRangeShort(getWeekDates(ws))}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </React.Fragment>
+          )}
         </div>
-      </div>
+        <span className="week-range">{fmtRange(dates)}</span>
+        <span className="header-spacer"></span>
+        <button className="theme-toggle" onClick={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} title={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}>
+          {theme === 'dark' ? (
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"></path>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+            </svg>
+          )}
+        </button>
+      </header>
 
       <div className="app-body">
         <div className="left-panel">
+          <div className="panel-eyebrow">Planung</div>
           {week.map((day, idx) => (
-            <DaySection key={idx} idx={idx} day={day} onChange={handleChange} />
+            <DayCard key={idx} idx={idx} day={day} date={dates[idx]} open={openDays[idx]} onToggle={() => toggleDay(idx)} onChange={handleChange} />
           ))}
         </div>
 
         <div className="right-panel">
-          <div className="preview-label">Wochenübersicht</div>
+          <div className="section-head">
+            <span className="section-title">Wochenübersicht</span>
+          </div>
           <WeekSummary week={week} />
-          <div className="preview-label">Vorschau</div>
+
+          <div className="section-head">
+            <span className="section-title">Vorschau</span>
+            <span className="section-sub">So sieht dein geteilter Plan aus</span>
+          </div>
           <div className="preview-grid">
             {week.map((day, idx) => (
-              <PreviewCard key={idx} dayIdx={idx} day={day} />
+              <PreviewCard key={idx} dayIdx={idx} day={day} date={dates[idx]} />
             ))}
           </div>
-          <div className="export-row">
-            <button className="clear-btn" onClick={handleClear} title="Alle Einträge löschen">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/>
+
+          <div className="actions-row">
+            <button className="btn btn-ghost" onClick={handleClear}>
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"></path>
               </svg>
               Alles löschen
             </button>
-            <button className={`export-btn${exporting ? ' loading' : ''}`} onClick={handleExport}>
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            <button className={`btn btn-secondary${exporting === 'story' ? ' loading' : ''}`} onClick={() => handleExport('story')}>
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <rect x="7" y="2" width="10" height="20" rx="2.5"></rect>
               </svg>
-              {exporting ? 'Wird exportiert…' : 'Als PNG exportieren'}
+              {exporting === 'story' ? 'Wird exportiert…' : 'Story (9:16)'}
+            </button>
+            <button className={`btn btn-primary${exporting === 'wide' ? ' loading' : ''}`} onClick={() => handleExport('wide')}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              {exporting === 'wide' ? 'Wird exportiert…' : 'Als PNG exportieren'}
             </button>
           </div>
         </div>
       </div>
 
       <div id="export-root">
-        <ExportCanvas week={week} />
+        <ExportWide week={week} dates={dates} accent={t.akzent} kw={kw} />
+        <ExportStory week={week} dates={dates} accent={t.akzent} kw={kw} />
       </div>
-    </>
+
+      <TweaksPanel>
+        <TweakSection label="Design" />
+        <TweakRadio label="Variante" value={t.variante} options={['Pure', 'Athletic', 'Soft']} onChange={(v) => setTweak('variante', v)} />
+        <TweakColor label="Akzentfarbe" value={t.akzent} options={['#0A84FF', '#84CC16', '#FF6B2C', '#7C6AF7']} onChange={(v) => setTweak('akzent', v)} />
+        <TweakRadio label="Hintergrund" value={t.hintergrund} options={['Ohne', 'Aurora', 'Raster', 'Verlauf']} onChange={(v) => setTweak('hintergrund', v)} />
+        <TweakSection label="Details" />
+        <TweakToggle label="Glow-Effekte" value={t.glow} onChange={(v) => setTweak('glow', v)} />
+      </TweaksPanel>
+    </React.Fragment>
   );
 }
 
