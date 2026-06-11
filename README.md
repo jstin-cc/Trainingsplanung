@@ -2,14 +2,9 @@
 
 Wochentrainingsplaner-Web-App: Trainingswochen (Mo–So) mit Kraft- und Ausdauerblöcken planen, als Live-Vorschau ansehen und als PNG exportieren — alles in einer einzigen HTML-Datei, ohne Build-Schritt.
 
-<!--
-## Screenshots
-Zum Aktivieren: die beiden PNGs unter docs/screenshots/ hochladen
-(GitHub: Add file → Upload files) und diesen Kommentarblock entfernen.
+<img src="docs/screenshots/Screenshot 2026-06-11 121733.png" alt="Planung und Wochenübersicht" width="100%">
 
-<img src="docs/screenshots/app-overview.png" alt="Planung und Wochenübersicht" width="100%">
-<img src="docs/screenshots/export-story.png" alt="Story-Export (9:16)" width="320">
--->
+<img src="docs/screenshots/trainingsplan-kw24(1).png" alt="Wide-Export (PNG)" width="100%">
 
 ## Features
 
