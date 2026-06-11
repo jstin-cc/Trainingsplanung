@@ -36,10 +36,10 @@
     --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.25);
     --shadow-pop: 0 12px 40px rgba(0,0,0,0.5);
     --header-bg: rgba(12,12,14,0.55);
-    --glass: rgba(28,28,34,0.52);
-    --glass-2: rgba(255,255,255,0.045);
-    --glass-border: rgba(255,255,255,0.12);
-    --glass-highlight: rgba(255,255,255,0.08);
+    --glass: rgba(28,28,34,0.38);
+    --glass-2: rgba(255,255,255,0.03);
+    --glass-border: rgba(255,255,255,0.10);
+    --glass-highlight: rgba(255,255,255,0.06);
     /* accent fallback until JS sets it */
     --accent: #0A84FF;
     --accent-contrast: #ffffff;
@@ -68,10 +68,10 @@
     --shadow-card: 0 1px 2px rgba(20,20,40,0.04), 0 8px 24px rgba(20,20,40,0.06);
     --shadow-pop: 0 16px 48px rgba(20,20,40,0.18);
     --header-bg: rgba(244,244,246,0.55);
-    --glass: rgba(255,255,255,0.55);
-    --glass-2: rgba(255,255,255,0.45);
-    --glass-border: rgba(255,255,255,0.75);
-    --glass-highlight: rgba(255,255,255,0.95);
+    --glass: rgba(255,255,255,0.42);
+    --glass-2: rgba(255,255,255,0.35);
+    --glass-border: rgba(255,255,255,0.65);
+    --glass-highlight: rgba(255,255,255,0.85);
     --accent: #0A84FF;
     --accent-contrast: #ffffff;
     --accent-tint: rgba(10,132,255,0.13);
@@ -1062,6 +1062,13 @@ const SPORT_HINTS = {
   Sonstiges: { distance: '–', pace: 'Pace' },
   '':        { distance: '–', pace: 'Pace' },
 };
+// Default pace values pre-filled when selecting a sport
+const SPORT_PACE_DEFAULTS = {
+  Schwimmen: '1:45 /100m',
+  Radfahren: '32 km/h',
+  Laufen:    '5:10 /km',
+  Sonstiges: '',
+};
 const SPORT_UNIT = { Schwimmen: 'm', Radfahren: 'km', Laufen: 'km', Sonstiges: 'km', '': 'km' };
 
 const ACCENTS = {
@@ -1233,6 +1240,15 @@ function IntensityDots({ value, onChange }) {
 
 function EnduranceEntryInput({ entry, onChange, onRemove }) {
   const set = (field, val) => onChange({ ...entry, [field]: val });
+  const setSport = (s) => {
+    const newSport = entry.sport === s ? '' : s;
+    const updates = { ...entry, sport: newSport };
+    // Pre-fill pace only if currently empty
+    if (newSport && !entry.pace) {
+      updates.pace = SPORT_PACE_DEFAULTS[newSport] || '';
+    }
+    onChange(updates);
+  };
   const hints = SPORT_HINTS[entry.sport] || SPORT_HINTS[''];
   const unit = SPORT_UNIT[entry.sport || ''];
   const distVal = parseFloat(entry.distance) || 0;
@@ -1242,7 +1258,7 @@ function EnduranceEntryInput({ entry, onChange, onRemove }) {
         <div className="sport-chips" style={{ flex: 1 }}>
           {SPORTS.map(s => (
             <button key={s} className={`sport-chip${entry.sport === s ? ' on' : ''}`}
-              onClick={() => set('sport', entry.sport === s ? '' : s)}>{SPORT_SHORT[s]}</button>
+              onClick={() => setSport(s)}>{SPORT_SHORT[s]}</button>
           ))}
         </div>
         <button className="entry-remove" onClick={onRemove} title="Einheit entfernen">✕</button>
