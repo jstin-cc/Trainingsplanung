@@ -1243,9 +1243,10 @@ function EnduranceEntryInput({ entry, onChange, onRemove }) {
   const setSport = (s) => {
     const newSport = entry.sport === s ? '' : s;
     const updates = { ...entry, sport: newSport };
-    // Pre-fill pace only if currently empty
-    if (newSport && !entry.pace) {
-      updates.pace = SPORT_PACE_DEFAULTS[newSport] || '';
+    // Pre-fill pace if empty or still an untouched default from another sport
+    const isDefaultPace = !entry.pace || Object.values(SPORT_PACE_DEFAULTS).includes(entry.pace);
+    if (isDefaultPace) {
+      updates.pace = newSport ? (SPORT_PACE_DEFAULTS[newSport] || '') : '';
     }
     onChange(updates);
   };
