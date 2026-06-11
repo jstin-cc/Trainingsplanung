@@ -1,30 +1,39 @@
 # Trainingsplanung
 
-Wochentrainingsplaner-Web-App zum Anlegen, Vorschau und PNG-Export eines Wochenplans (Mo–So) mit Kraft- und Ausdauerblöcken.
+Wochentrainingsplaner-Web-App: Trainingswochen (Mo–So) mit Kraft- und Ausdauerblöcken planen, als Live-Vorschau ansehen und als PNG exportieren — alles in einer einzigen HTML-Datei, ohne Build-Schritt.
+
+## Screenshots
+
+<!-- Screenshots unter docs/screenshots/ ablegen, dann erscheinen sie hier automatisch -->
+| Planung & Übersicht | Story-Export |
+|---|---|
+| ![App-Übersicht](docs/screenshots/app-overview.png) | ![Story-Export](docs/screenshots/export-story.png) |
 
 ## Features
 
-- **7 Tagesabschnitte** (Montag–Sonntag) mit:
-  - **Kraftblock**: Workout-Template wählen (Push / Pull / Leg / Oberkörper) oder freier Titel + optionale Notiz — Muskelgruppen werden automatisch per Template gesetzt
-  - **Ausdauerblock**: beliebig viele Einheiten mit Sportart (Schwimmen / Radfahren / Laufen / Sonstiges), Titel, Intensität (5-Punkte-Skala), Dauer, Strecke (km/m je Sportart), Pace und Notiz
-- **Koppeltraining** kennzeichnen: Toggle zwischen zwei aufeinanderfolgenden Ausdauereinheiten
-- **Wochenübersicht** (rechte Seite):
-  - Einheiten- und Gesamtzeit-Kacheln
-  - Verteilungsbalken leicht / mittel / hart
-  - **SVG-Muskelkarte** (Vorder-/Rückansicht) mit 4-stufiger Einfärbung je Trainingsfrequenz (0 = inaktiv → 3+ = intensiv) neben dem Verteilungsbalken
-- **Live-Vorschau** als 7-Spalten-Grid, leere Tage/Blöcke werden ausgeblendet
-- **PNG-Export** des Wochenplans (1400px breit) via `html2canvas`
-- **Persistenz** aller Eingaben in `localStorage` (Schlüssel: `trainingsplanung_v2`, mit Migration aus `_v1`)
+### Planung
+- **Mehrwochen-Verwaltung**: Kalenderwochen-Picker mit Vor/Zurück-Navigation und „Heute"-Sprung; jede Woche wird separat gespeichert
+- **7 aufklappbare Tageskarten** (Montag–Sonntag) mit Badges für geplante Einheiten:
+  - **Kraftblock**: Titel (z. B. Push / Pull / Legs) + optionale Notiz
+  - **Ausdauerblock**: beliebig viele Einheiten mit Sportart-Chips (Schwimmen / Rad / Laufen / Sonstiges), Titel, Intensität (5-Punkte-Skala), Dauer, Strecke (m bzw. km je Sportart), Pace, Label und Notiz
+- **Pace-Vorauswahl**: Beim Wählen der Sportart wird ein typischer Richtwert vorbelegt (Laufen `5:10 /km`, Rad `32 km/h`, Schwimmen `1:45 /100m`) — eigene Eingaben werden nie überschrieben
+- **Koppeltraining**: Toggle zwischen zwei aufeinanderfolgenden Ausdauereinheiten
 
-## Workout-Templates (Kraft)
+### Übersicht & Export
+- **Wochenübersicht**: Kacheln für Einheiten und Gesamtzeit plus Verteilungsbalken leicht / mittel / hart
+- **Live-Vorschau** als 7-Spalten-Grid, leere Tage werden ausgeblendet
+- **Zwei PNG-Exportformate** via `html2canvas`:
+  - **Wide** (1500 px) für Desktop/Druck
+  - **Story** (540×960 px, 9:16) für Instagram & Co.
 
-| Template | Muskelgruppen |
-|---|---|
-| Push | Brust, Schultern, Trizeps |
-| Pull | Rücken, Bizeps, Unterarme |
-| Leg | Beine, Waden |
-| Oberkörper mit Armen | Brust, Rücken, Schultern, Bizeps, Trizeps, Bauch/Core |
-| Oberkörper ohne Arme | Brust, Rücken, Schultern, Bauch/Core |
+### Design
+- **Liquid Glass / Glassmorphism**: halbtransparente Karten mit `backdrop-filter`-Blur, Glaskanten und Taschenlampen-Effekt, der dem Cursor folgt
+- **Dark- & Light-Theme** (Umschalter im Header, wird gespeichert)
+- **Design-Varianten** (Pure / Athletic / Soft) mit eigenen Fonts und Radien, **4 Akzentfarben** und **Hintergrund-Modi** (Aurora mit langsamem Drift, Raster, Verlauf, Ohne) — einstellbar über das TweaksPanel
+- **Mikro-Interaktionen**: Hover-Lift der Karten, Bounce der Intensitäts-Dots, gestaffeltes Einblenden der Tageskarten, sanfte Wochenwechsel-Animation — alles respektiert `prefers-reduced-motion`
+
+### Persistenz
+- Alle Eingaben liegen in `localStorage` (Schlüssel `tp_weeks_v1`, Format `{ "2026-W24": [...7 Tage] }`), mit automatischer Migration aus den älteren Schlüsseln `trainingsplanung_v2`/`_v1`
 
 ## Starten
 
@@ -34,13 +43,11 @@ Wochentrainingsplaner-Web-App zum Anlegen, Vorschau und PNG-Export eines Wochenp
 
 ```
 src/index.html      # Komplette App (HTML + CSS + React via Babel)
-input/              # (leer) Rohdaten
-output/             # (leer) Exporte
-logs/               # (leer)
+docs/screenshots/   # Screenshots für die README
 design/             # Original Design-Bundle aus Claude Design (Referenz)
-.claude/            # Projektkontext, Agents, Skills
+.claude/            # Projektkontext
 ```
 
-## Design
+## Tech-Stack
 
-Stack: React 18 (UMD), Space Grotesk / Space Mono, dunkles Theme (`#111113`), Akzentfarbe Lila (`#7c6af7`). Prototyp-Vorlage unter `design/trainingsplanung/`.
+React 18 (UMD) + Babel Standalone, Fonts Hanken Grotesk / Archivo / Sora, CSS Custom Properties für Themes/Varianten, `html2canvas` für die PNG-Exporte.
